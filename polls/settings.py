@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-66nel2@$ncesizssb=f1858mqxs6bimy69y&2$!2$l=@(*)=ge"
+SECRET_KEY = "django-insecure-_^o$rv4nz%b2_&2x55&ojicdhsf%t8dlmhtcnin+e1z20ijiib"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -37,6 +37,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "accounts",
+    "e_voting",
+    "e_voting_api"
 ]
 
 MIDDLEWARE = [
@@ -75,8 +78,16 @@ WSGI_APPLICATION = "polls.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        'ENGINE': 'django.db.backends.postgresql',
+
+        'NAME': 'polls_db',
+
+        'USER': 'afex',
+
+        'PASSWORD': '123456',
+
+        'PORT': '5432',
+
     }
 }
 
@@ -121,3 +132,5 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+AUTH_USER_MODEL = 'accounts.User'
