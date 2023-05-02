@@ -8,7 +8,10 @@ class UserManager(BaseUserManager):
 
     def create_user(self, email, password=None, **extra_fields):
         """ Creates and save new user(voter)"""
-        user = self.model(email=email, **extra_fields)
+        if not email:
+            raise ValueError("Email address is required")
+
+        user = self.model(email=self.normalize_email(email), **extra_fields)
         user.set_password(password)
         user.save()
 
