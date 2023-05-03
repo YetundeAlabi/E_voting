@@ -1,7 +1,7 @@
 from django.db import models
 from django.urls import reverse
 from accounts.models import User
-from phonenumber_field.modelfields import PhoneNumberField
+# from phonenumber_field.modelfields import PhoneNumberField
 
 
 # Create your models here.

@@ -81,9 +81,9 @@ DATABASES = {
     "default": {
         'ENGINE': 'django.db.backends.postgresql',
 
-        'NAME': 'election_db',
+        'NAME': 'polls_db',
 
-        'USER': 'postgres',
+        'USER': 'Afex',
 
         'PASSWORD': '123456',
 
@@ -136,5 +136,5 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = 'accounts.User'
 
-PHONENUMBER_DB_FORMAT = 'National'
+PHONENUMBER_DB_FORMAT = "National"
 PHONENUMBER_DEFAULT_REGION = 'NG'
