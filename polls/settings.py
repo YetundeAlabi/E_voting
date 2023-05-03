@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "accounts",
     "e_voting",
-    "e_voting_api"
+    "e_voting_api",
+    "phonenumber_field"
 ]
 
 MIDDLEWARE = [
@@ -134,3 +135,7 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = 'accounts.User'
+
+# PHONENUMBER_DB_FORMAT = 
+PHONENUMBER_DEFAULT_REGION = "National"
+PHONENUMBER_DEFAULT_FORMAT = "NG"
