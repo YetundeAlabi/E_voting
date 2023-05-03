@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,10 +38,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework",
     "accounts",
+    "rest_framework_simplejwt",
     "e_voting",
     "e_voting_api",
-    "phonenumber_field"
+    "phonenumber_field",
 ]
 
 MIDDLEWARE = [
@@ -138,3 +141,18 @@ AUTH_USER_MODEL = 'accounts.User'
 
 PHONENUMBER_DB_FORMAT = "National"
 PHONENUMBER_DEFAULT_REGION = 'NG'
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.authentication.isAuthenticatedOrReadOnly'
+    ],
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+}
