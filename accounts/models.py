@@ -6,23 +6,23 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 class UserManager(BaseUserManager):
 
-    def create_user(self, email, password=None, **extra_fields):
+    def create_user(self, email, phone_number, password=None, **extra_fields):
         """ Creates and save new user(voter)"""
         if not email:
             raise ValueError("Email address is required")
 
-        user = self.model(email=self.normalize_email(email), **extra_fields)
+        user = self.model(email=self.normalize_email(email), phone_number=phone_number, **extra_fields)
         user.set_password(password)
         user.save()
 
         return user
     
-    def create_superuser(self, email, password=None, **extra_fields):
+    def create_superuser(self, email, phone_number, password=None, **extra_fields):
         """ creates superuser"""
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
 
-        return self.create_user(email, password, **extra_fields)
+        return self.create_user(email, password, phone_number, **extra_fields)
     
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -30,25 +30,22 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(verbose_name = "email address", max_length=255, unique=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
-    
+    first_name = models.CharField(max_length=30, blank=True, null=True)
+    last_name = models.CharField(max_length=30, blank=True, null=True)
+    phone_number = PhoneNumberField(blank=True)
+    # voted = models.BooleanField(default=False)
+
     objects = UserManager()
 
     REQUIRED_FIELDS = []
     USERNAME_FIELD = "email"
     
     @property
-    def is_staff(self):
+    def is_admin(self):
         "Is the user a member of staff?"
         # Simplest possible answer: All admins are staff
-        return self.is_admin
+        return self.is_staff
     
-
-class Voter(User):
-    first_name = models.CharField(max_length=30, blank=True, null=True)
-    last_name = models.CharField(max_length=30, blank=True, null=True)
-    phone_number = PhoneNumberField(blank=True)
-    voted = models.BooleanField(default=False)
-
     def __str__(self):
         self.email
 
@@ -61,5 +58,24 @@ class Voter(User):
             self.save()
             return True
         return False
+
+# class Voter(User):
+#     # first_name = models.CharField(max_length=30, blank=True, null=True)
+#     # last_name = models.CharField(max_length=30, blank=True, null=True)
+#     # phone_number = PhoneNumberField(blank=True)
+#     voted = models.BooleanField(default=False)
+
+#     # def __str__(self):
+#     #     self.email
+
+#     # def get_full_name(self):
+#     #     return f'{self.first_name} {self.last_name}'
+    
+#     def cast_vote(self):
+#         if not self.voted:
+#             self.voted = True
+#             self.save()
+#             return True
+#         return False
 
     

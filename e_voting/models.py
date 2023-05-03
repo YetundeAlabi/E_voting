@@ -1,6 +1,8 @@
 from django.db import models
 from django.urls import reverse
-from accounts.models import User, Voter
+from accounts.models import User
+from phonenumber_field.modelfields import PhoneNumberField
+
 
 # Create your models here.
 class Poll(models.Model):
@@ -37,16 +39,15 @@ class Candidate(models.Model):
     def get_vote_count(self):
         self.candidate_votes.count()
     
-    
+
 class Vote(models.Model):
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="poll_votes")
     choice = models.ForeignKey(Candidate, on_delete=models.CASCADE, related_name ="candidate_votes")
-    voted_by = models.ForeignKey(Voter, on_delete=models.CASCADE)
+    voted_by = models.ForeignKey(User, on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ("poll", "voted_by")
 
 
-# class Voters(models.Model):
-#     user = models.OneToOneField(User, on_delete=models.CASCADE)
-#     first_name = models.CharField(max_length=255)
+
+

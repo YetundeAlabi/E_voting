@@ -81,9 +81,9 @@ DATABASES = {
     "default": {
         'ENGINE': 'django.db.backends.postgresql',
 
-        'NAME': 'polls_db',
+        'NAME': 'election_db',
 
-        'USER': 'afex',
+        'USER': 'postgres',
 
         'PASSWORD': '123456',
 
