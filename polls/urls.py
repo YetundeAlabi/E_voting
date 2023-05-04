@@ -32,6 +32,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", views.CreateUserView.as_view(), name="create"),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/', include('e_voting_api.urls')),
     path("test/", views.TestView.as_view())
 
 ]
