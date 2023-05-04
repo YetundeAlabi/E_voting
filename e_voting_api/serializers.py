@@ -2,7 +2,6 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from e_voting.models import Candidate, Vote, Poll 
 
-
 User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
@@ -25,8 +24,16 @@ class CandidateSerializer(serializers.ModelSerializer):
         model = Candidate
         field = ["name", "poll"]
 
+
 class PollSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Poll
+        field = "__all__"
+
+
+class VoteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Vote
         field = "__all__"
