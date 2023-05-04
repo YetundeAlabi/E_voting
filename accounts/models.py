@@ -31,11 +31,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(
         verbose_name="email address", max_length=255, unique=True)
     is_active = models.BooleanField(default=True)
+    is_verified = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     first_name = models.CharField(max_length=30, blank=True, null=True)
     last_name = models.CharField(max_length=30, blank=True, null=True)
     phone_number = PhoneNumberField(blank=True)
     voted = models.BooleanField(default=False)
+    is_deleted = models.BooleanField(default=False)
 
     objects = UserManager()
 
@@ -48,8 +50,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         # Simplest possible answer: All admins are staff
         return self.is_staff
 
-    def __str__(self):
-        self.email
+    # def __str__(self):
+    #     self.username
 
     def get_full_name(self):
         return f'{self.first_name} {self.last_name}'

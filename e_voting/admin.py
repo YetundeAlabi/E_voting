@@ -6,13 +6,15 @@ from e_voting.models import Poll, Candidate, Vote
 
 class UserAdmin(BaseUserAdmin):
     ordering = ["id"]
-    list_display = ["email", "first_name", "last_name"]
+    list_display = ["email", "first_name", "last_name", "is_active"]
     list_filter = ["is_staff"]
 
     fieldsets = [
         (None, {"fields": ["email", "password"]}),
         ("Personal info", {"fields": ["first_name", "last_name", "phone_number"]}),
-        ("Permissions", {"fields": ["is_active", "is_admin"]}),
+        ("Permissions", {"fields": ["is_active", "is_staff", "is_verified"]}),
+        (None, {"fields": ["voted", "is_deleted"]}),
+        ("Dates", {"fields": ["last_login",]})
     ]
     
     add_fieldsets = [
@@ -20,11 +22,13 @@ class UserAdmin(BaseUserAdmin):
             None,
             {
                 "classes": ["wide"],
-                "fields": ["email", "first_name", "last_name", "phone_number" "password1", "password2"],
+                "fields": ["email", "first_name", "last_name", "phone_number", "password1", "password2"],
             },
         ),
     ]
-    
+
+search_fields = ("email",)
+ordering = ("email",)
 
 admin.site.register(User, UserAdmin)
 

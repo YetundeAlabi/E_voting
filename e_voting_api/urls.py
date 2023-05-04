@@ -1,9 +1,10 @@
 from django.urls import path
-from e_voting_api import views
+from . import views
 
 urlpatterns = [
-    path('user/create/', views.CreateUserView.as_view(), name='create'),
+    path('sign-up', views.UserSignUpView.as_view(), name='signup'),
     path('candidate/', views.CreateCandidateView.as_view(), name="candidate"),
-    path('poll/', views.CreatePollView.as_view(), name="poll")
+    path('poll/', views.CreatePollView.as_view(), name="poll"),
+    path('email-verify/', views.VerifyEmail.as_view(), name="email-verify")
 
 ]
