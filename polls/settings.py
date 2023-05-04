@@ -39,8 +39,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
-    "accounts",
     "rest_framework_simplejwt",
+    "accounts",
     "e_voting",
     "e_voting_api",
     "phonenumber_field",
@@ -147,9 +147,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.authentication.isAuthenticatedOrReadOnly'
-    ],
+    # 'DEFAULT_PERMISSION_CLASSES': [
+    #     'rest_framework.authentication.isAuthenticatedOrReadOnly'
+    # ],
 }
 
 SIMPLE_JWT = {
