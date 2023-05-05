@@ -6,7 +6,7 @@ from e_voting.models import Poll, Candidate, Vote
 
 class UserAdmin(BaseUserAdmin):
     ordering = ["id"]
-    list_display = ["email", "first_name", "last_name", "is_active"]
+    list_display = ["email", "first_name", "last_name", "is_active", "is_verified"]
     list_filter = ["is_staff"]
 
     fieldsets = [

@@ -17,10 +17,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from e_voting_api import views
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+# from rest_framework_simplejwt.views import (
+#     TokenObtainPairView,
+#     TokenRefreshView,
+# )
 
 # urlpatterns = [
 #     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -30,10 +30,11 @@ from rest_framework_simplejwt.views import (
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    # path("", views.UserSignupView.as_view(), name="create"),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path("", views.UserSignUpView.as_view(), name="create"),
+    path('email-verify/', views.VerifyEmail.as_view(), name="email-verify"),
+    # path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/', include('e_voting_api.urls')),
-    path('verification/', include('verify_email.urls')),
+    # path('verification/', include('verify_email.urls')),
     path("test/", views.TestView.as_view())
 
 ]
