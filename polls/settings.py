@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     "e_voting",
     "e_voting_api",
     "phonenumber_field",
-    "verify_email.apps.VerifyEmailConfig",
 ]
 
 MIDDLEWARE = [
