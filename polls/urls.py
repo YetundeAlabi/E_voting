@@ -30,11 +30,11 @@ from e_voting_api import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", views.UserSignUpView.as_view(), name="create"),
-    path('email-verify/', views.VerifyEmail.as_view(), name="email-verify"),
+    path("signup", views.UserSignUpView.as_view(), name="create"),
+    # path('email-verify/', views.VerifyEmail.as_view(), name="email-verify"),
     # path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/', include('e_voting_api.urls')),
     # path('verification/', include('verify_email.urls')),
-    path("test/", views.TestView.as_view())
+    path("", views.TestView.as_view())
 
 ]

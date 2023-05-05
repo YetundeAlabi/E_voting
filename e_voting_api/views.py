@@ -3,7 +3,8 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from django.conf import settings
 from rest_framework import generics
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, CreateAPIView
+from rest_framework.views import APIView
 from rest_framework import status, serializers
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -15,7 +16,7 @@ from .utils import Util
 import jwt
 
 
-class UserSignUpView(generics.CreateAPIView):
+class UserSignUpView(CreateAPIView):
     """Create a new user in the system"""
     permission_classes = (AllowAny,)
     serializer_class = UserSerializer
@@ -27,14 +28,14 @@ class UserSignUpView(generics.CreateAPIView):
             user_data = serializer.data
 
             token = RefreshToken.for_user(user)
-            user_data["token"] = {
+            refresh = {
                 'refresh': str(token),
                 'access': str(token.access_token),
             }
             current_site = get_current_site(request).domain
             relative_link = reverse("email-verify")
 
-            absurl = f'http://{current_site}{relative_link}?token={user_data["token"]["access"]}'
+            absurl = f'http://{current_site}{relative_link}?token={refresh["access"]}'
             email_body = f'Hi {user.first_name} Use the link below to verify your email \n{absurl}'
             data = {"email_body": email_body, "to_email": user.email, "email_subject": "Verify your email"}
             Util.send_email(data)
@@ -43,7 +44,8 @@ class UserSignUpView(generics.CreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
-class VerifyEmail(generics.GenericAPIView):
+class VerifyEmail(GenericAPIView):
+    """ An endpoint to verify if user email is authentic before login"""
     serializer_class = EmailVerificationSerializer
 
     def get(self, request):
@@ -81,6 +83,34 @@ class UserLoginAPIView(GenericAPIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
+import csv
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import CandidateSerializer
+
+class CandidateImportView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+
+    def post(self, request, *args, **kwargs):
+        file_obj = request.data['file']
+        if not file_obj.name.endswith('.csv'):
+            return Response({'error': 'File type not supported'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            decoded_file = file_obj.read().decode('utf-8').splitlines()
+            reader = csv.DictReader(decoded_file)
+            serializer = CandidateSerializer(data=reader, many=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
 class CreatePollView(generics.CreateAPIView):
     serializer_class = PollSerializer
     permission_classes = (IsAdminUser)
@@ -94,4 +124,4 @@ class CreateCandidateView(generics.CreateAPIView):
 class TestView(generics.ListAPIView):
     serializer_class = UserSerializer
     queryset = User.objects.all()
-    permission_classes = [IsAuthenticated]
+    # permission_classes = []

@@ -33,6 +33,10 @@ class UserLoginSerializer(serializers.ModelSerializer):
     email = serializers.CharField()
     password = serializers.CharField(write_only=True)
 
+    class Meta:
+        model = User
+        fields = ("email", "password" )
+
     def validate(self, validated_data):
         user = authenticate(**validated_data)
         if not user.is_verified:
