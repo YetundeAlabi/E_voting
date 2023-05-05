@@ -6,7 +6,6 @@ from rest_framework.exceptions import AuthenticationFailed
 
 User = get_user_model()
 
-
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for the voters object"""
 
