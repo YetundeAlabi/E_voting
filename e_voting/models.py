@@ -28,7 +28,7 @@ class Poll(models.Model):
 class Candidate(models.Model):
     name = models.CharField(max_length=100)
     image = models.ImageField(upload_to="e_voting/candidates", null=True)
-    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, null=True)
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, null=True, related_name="candidates")
 
     def __str__(self):
         return self.name
@@ -47,6 +47,12 @@ class Vote(models.Model):
 
     class Meta:
         unique_together = ("poll", "voted_by")
+
+
+class Voter(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="voters")
+
 
 
 

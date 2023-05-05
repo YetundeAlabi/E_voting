@@ -30,12 +30,12 @@ class EmailVerificationSerializer(serializers.ModelSerializer):
 
 class UserLoginSerializer(serializers.ModelSerializer):
     """Serializer to authenticate users with email and password"""
-    email = serializers.CharField()
+    email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
-        fields = ("email", "password" )
+        fields = ("email", "password")
 
     def validate(self, validated_data):
         user = authenticate(**validated_data)
@@ -50,7 +50,7 @@ class PollSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Poll
-        field = "__all__"
+        fields = ["name", "description"]
 
 
 class CandidateSerializer(serializers.ModelSerializer):
@@ -59,18 +59,43 @@ class CandidateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Candidate
-        field = ["name", "poll"]
+        fields = ["name", "poll"]
+
+
+class CreateCandidateSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Candidate
+        fields = ["id", "name", "poll"]
+
+    def create(self, validated_data):
+        poll_id = self.context.get("poll_id")
+        validated_data["poll_id"] = poll_id
+        return super().create(validated_data)
 
 
 class CandidateDetailSerializer(serializers.ModelSerializer):
     poll = PollSerializer(many=True, read_only=True)
 
-    model = Candidate
-    fields = ["id", "name", "poll"]
+    class Meta:
+        model = Candidate
+        fields = ["id", "name", "poll"]
+
+
+class VotersPollSerializer(serializers.ModelSerializer):
+    polls = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ["id"]
+
+    def get_polls(self, obj):
+        # polls = obj.
+        pass
 
 
 class VoteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Vote
-        field = "__all__"
+        fields = ['id', 'poll', 'choice', 'voted_by']

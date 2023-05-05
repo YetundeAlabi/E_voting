@@ -1,4 +1,6 @@
-from urllib import response
+import csv
+import jwt
+
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from django.conf import settings
@@ -9,11 +11,20 @@ from rest_framework import status, serializers
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser
 
-from .serializers import UserSerializer, PollSerializer, CandidateSerializer, UserLoginSerializer, EmailVerificationSerializer 
+from . import serializers
+from .serializers import (
+    UserSerializer, 
+    PollSerializer, 
+    CandidateSerializer, 
+    UserLoginSerializer, 
+    EmailVerificationSerializer 
+)
 from accounts.models import User
 from .utils import Util
-import jwt
+from e_voting.models import Candidate, Poll, Vote
+
 
 
 class UserSignUpView(CreateAPIView):
@@ -57,8 +68,8 @@ class VerifyEmail(GenericAPIView):
                 user.is_verified = True
                 user.save()
             return Response({"email": 'Successfully activated'}, status=status.HTTP_200_OK)
-        # except jwt.ExpiredSigntureError as identifier:
-        #     return Response({"error": 'Activation Expired'}, status=status.HTTP_400_BAD_REQUEST)
+        except jwt.ExpiredSigntureError as identifier:
+            return Response({"error": 'Activation Expired'}, status=status.HTTP_400_BAD_REQUEST)
         except jwt.exceptions.DecodeError as identifier:
             return Response({"error": 'Invalid Token'}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -83,12 +94,6 @@ class UserLoginAPIView(GenericAPIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
-import csv
-from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.response import Response
-from rest_framework import status
-from .serializers import CandidateSerializer
 
 class CandidateImportView(APIView):
     parser_classes = (MultiPartParser, FormParser)
@@ -116,9 +121,20 @@ class CreatePollView(generics.CreateAPIView):
     permission_classes = (IsAdminUser)
 
 
-class CreateCandidateView(generics.CreateAPIView):
+class CreateCandidateView(CreateAPIView):
     serializer_class =  CandidateSerializer
+    queryset = Candidate.objects.all()
+
     permission_classes = [IsAdminUser]
+
+    def get_serializer_context(self):
+        poll_id = self.kwargs.get('poll_id')
+        return {'poll_id': poll_id}
+
+    def perform_create(self, serializer):
+        poll_id = self.kwargs.get('poll_id')
+        poll = Poll.objects.get(id=poll_id)
+        serializer.save(poll=poll)
     
 
 class TestView(generics.ListAPIView):
