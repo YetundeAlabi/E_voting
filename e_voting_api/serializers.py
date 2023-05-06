@@ -45,6 +45,11 @@ class UserLoginSerializer(serializers.ModelSerializer):
             return user
         raise serializers.ValidationError("Incorrect Credentials") 
 
+class CreatePollSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Poll
+        fields = ["name", "description"]
+
 
 class PollSerializer(serializers.ModelSerializer):
     # voters = serializers.StringRelatedField(many=True)
@@ -100,11 +105,11 @@ class VoteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Vote
-        fields = ['id', 'poll', 'choice', 'voted_by']
+        fields = ['id', 'poll', 'candidate', 'voted_by']
 
 
 class VoterImportSerializer(serializers.ModelSerializer):
-    user = 
+
     class Meta:
         model = Voter
         fields = "__all__"

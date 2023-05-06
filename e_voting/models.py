@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import models
 from django.urls import reverse
 from accounts.models import User
@@ -8,10 +10,10 @@ from accounts.models import User
 class Poll(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(null=True)
-    start_time = models.DateTimeField(auto_now_add=True)
-    end_time = models.DateTimeField(auto_now_add=True)
-    updated_start_time = models.DateTimeField(auto_now=True)
-    updated_end_time = models.DateTimeField(auto_now = True)
+    start_time = models.TimeField(default=datetime.time(8, 0)) #poll starts at 8:00am
+    end_time = models.TimeField(default=datetime.time(16, 0)) #poll ends at 4:00pm
+    updated_start_time = models.TimeField(default=datetime.time(8, 0))
+    updated_end_time = models.TimeField(default=datetime.time(16, 0))
     is_deleted = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     
