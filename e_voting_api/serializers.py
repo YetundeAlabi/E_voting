@@ -1,7 +1,10 @@
+from datetime import datetime
+
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework import serializers
 from e_voting.models import Candidate, Vote, Poll, Voter
 from rest_framework.exceptions import AuthenticationFailed
+from django.utils import timezone
 
 
 User = get_user_model()
@@ -46,20 +49,42 @@ class UserLoginSerializer(serializers.ModelSerializer):
         raise serializers.ValidationError("Incorrect Credentials") 
 
 
-class CreatePollSerializer(serializers.ModelSerializer):
-    
+class PollSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Poll
         fields = ["name", "description"]
 
 
-class PollSerializer(serializers.ModelSerializer):
-    # voters = serializers.StringRelatedField(many=True)
+class PollDetailSerializer(serializers.ModelSerializer):
     candidates = serializers.StringRelatedField(many=True, read_only=True, required=False)
 
     class Meta:
         model = Poll
-        fields = ["name", "description", "candidates"]
+        fields = "__all__"
+
+    def update(self, instance, validated_data):
+
+        """update start and end time before a poll start """
+        if instance.start_time > datetime.now().time() and instance.end_time > datetime.now().time(): #update poll when it has not started
+            instance.start_time = validated_data.get("start_time", instance.start_time)
+            instance.end_time = validated_data.get("end_time", instance.end_time)
+            instance.description = validated_data.get("description", instance.description)
+            instance.name = validated_data.get("description", instance.name)
+            # instance.save()  
+
+            """extend end time of poll when a poll is active"""
+        elif instance.start_time < datetime.now().time() < instance.end_time: #extend end time of poll when a poll is active
+            instance.end_time = validated_data.get("end_time", instance.end_time)
+            instance.description = validated_data.get("description", instance.description)
+            instance.name = validated_data.get("name", instance.name)
+            
+            """ can't update a poll start_time when poll is active or update end time when poll has ended """
+        elif instance.end_time < datetime.now().time() or instance.start_time < datetime.now().time():
+            raise serializers.ValidationError("Poll has already started or ended.")
+        
+        return instance
+
 
 
 # class CandidateSerializer(serializers.ModelSerializer):

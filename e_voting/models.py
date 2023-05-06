@@ -8,17 +8,27 @@ from accounts.models import User
 
 # Create your models here.
 class Poll(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
     description = models.TextField(null=True)
     start_time = models.TimeField(default=datetime.time(8, 0)) #poll starts at 8:00am
     end_time = models.TimeField(default=datetime.time(16, 0)) #poll ends at 4:00pm
     updated_start_time = models.TimeField(default=datetime.time(8, 0))
     updated_end_time = models.TimeField(default=datetime.time(16, 0))
     is_deleted = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
+    last_updated = models.DateTimeField(auto_now=True)
     
     def __str__(self):
         return self.name
+    
+    def is_now_active(self):
+        """ check if poll is active at current time """
+        if self.start_time >= datetime.now().time() <= self.end_time:
+            self.is_active = True
+            self.save()
+            return True  
+        return False
+
     
     def get_absolute_url(self):
         return reverse("poll_detail", kwargs={"pk": self.pk})

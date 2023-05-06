@@ -6,7 +6,8 @@ urlpatterns = [
     path('email-verify/', views.VerifyEmail.as_view(), name="email-verify"),
     path("auth/login/", views.UserLoginAPIView.as_view(), name="login"),
     path('polls/', views.PollListView.as_view(), name="poll"),
-    path('polls/<int:pk>candidate', views.CandidateListView.as_view(), name="candidate-list"),
+    path('polls/<int:pk>/candidate', views.CandidateListView.as_view(), name="candidate-list"),
+    path('polls/<int:pk>/', views.PollDetailView.as_view(), name="poll_detail"),
    
     # path("", views.TestView.as_view())
 

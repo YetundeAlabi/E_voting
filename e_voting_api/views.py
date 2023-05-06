@@ -1,9 +1,13 @@
 import csv
 import jwt
+from datetime import datetime
+
 
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from django.conf import settings
+from django.utils import timezone
+
 from rest_framework import generics
 from rest_framework.generics import GenericAPIView, CreateAPIView
 from rest_framework.views import APIView
@@ -96,19 +100,77 @@ class UserLoginAPIView(GenericAPIView):
 
 
 class PollListView(generics.ListCreateAPIView):
-    serializer_class = PollSerializer
+    serializer_class = serializers.PollSerializer
     permission_classes = [IsAdminOrReadOnly]
     queryset = Poll.objects.all()
 
 
+class PollDetailView(generics.RetrieveUpdateAPIView):
+    queryset = Poll.objects.all()
+    serializer_class = serializers.PollDetailSerializer
+    permission_classes = [IsAdminOrReadOnly]
+
+
+    def put(self, request, *args, **kwargs):
+        poll = self.get_object()  
+        serializer = self.get_serializer(poll, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+
+# class PollUpdateView(APIView):
+#     serializer_class = serializers.PollDetailSerializer
+
+#     def put(self, request, pk):
+#         poll = Poll.objects.get()
+        
+#         data = request.data
+#         if poll.start_time < datetime.now().time():
+#             raise "Poll has already started."
+#         poll.description = data.get("description")
+#         poll.start_time = data.get("start_time")
+#         poll.end_time = data.get("end_time")
+#         poll.name = data.get("name")
+#         # if poll.
+
+#         # if poll.is_active:
+#         #     return Response({'message': 'Poll is active'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         now = timezone.now().time()
+#         if now < poll.start_time:
+#             poll.start_time = poll.updated_start_time
+#         if now > poll.end_time:
+#             poll.end_time = poll.updated_end_time
+#         poll.save()
+
+#         serializer = PollSerializer(poll)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+
+
+
 class CandidateListView(generics.ListCreateAPIView):
     serializer_class =  CandidateSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminUser, IsAuthenticated]
 
     def get_queryset(self):
         #filter candidates using poll id
         queryset = Candidate.objects.filter(poll_id = self.kwargs["pk"])
         return queryset
+
+
+
+
+
+
+
+
+
 
 # class CandidateImportView(APIView):
 #     parser_classes = (MultiPartParser, FormParser)
