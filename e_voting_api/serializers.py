@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework import serializers
-from e_voting.models import Candidate, Vote, Poll
+from e_voting.models import Candidate, Vote, Poll, Voter
 from rest_framework.exceptions import AuthenticationFailed
 
 
@@ -47,10 +47,12 @@ class UserLoginSerializer(serializers.ModelSerializer):
 
 
 class PollSerializer(serializers.ModelSerializer):
+    # voters = serializers.StringRelatedField(many=True)
+    candidates = serializers.StringRelatedField(many=True)
 
     class Meta:
         model = Poll
-        fields = ["name", "description"]
+        fields = ["name", "description", "candidates"]
 
 
 class CandidateSerializer(serializers.ModelSerializer):
@@ -99,3 +101,10 @@ class VoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vote
         fields = ['id', 'poll', 'choice', 'voted_by']
+
+
+class VoterImportSerializer(serializers.ModelSerializer):
+    user = 
+    class Meta:
+        model = Voter
+        fields = "__all__"
