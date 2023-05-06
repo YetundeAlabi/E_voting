@@ -24,6 +24,7 @@ from .serializers import (
 from accounts.models import User
 from .utils import Util
 from e_voting.models import Candidate, Poll, Vote
+from e_voting_api.permissions import IsAdminOrReadOnly
 
 
 
@@ -94,47 +95,54 @@ class UserLoginAPIView(GenericAPIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
-
-class CandidateImportView(APIView):
-    parser_classes = (MultiPartParser, FormParser)
-
-    def post(self, request, *args, **kwargs):
-        file_obj = request.data['file']
-        if not file_obj.name.endswith('.csv'):
-            return Response({'error': 'File type not supported'}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            decoded_file = file_obj.read().decode('utf-8').splitlines()
-            reader = csv.DictReader(decoded_file)
-            serializer = CandidateSerializer(data=reader, many=True)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class CreatePollView(generics.CreateAPIView):
+class PollListView(generics.ListCreateAPIView):
     serializer_class = PollSerializer
-    permission_classes = (IsAdminUser)
+    permission_classes = [IsAdminOrReadOnly]
+    queryset = Poll.objects.all()
 
 
-class CreateCandidateView(CreateAPIView):
+class CandidateListView(generics.ListCreateAPIView):
     serializer_class =  CandidateSerializer
-    queryset = Candidate.objects.all()
-
     permission_classes = [IsAdminUser]
 
-    def get_serializer_context(self):
-        poll_id = self.kwargs.get('poll_id')
-        return {'poll_id': poll_id}
+    def get_queryset(self):
+        #filter candidates using poll id
+        queryset = Candidate.objects.filter(poll_id = self.kwargs["pk"])
+        return queryset
 
-    def perform_create(self, serializer):
-        poll_id = self.kwargs.get('poll_id')
-        poll = Poll.objects.get(id=poll_id)
-        serializer.save(poll=poll)
+# class CandidateImportView(APIView):
+#     parser_classes = (MultiPartParser, FormParser)
+
+#     def post(self, request, *args, **kwargs):
+#         file_obj = request.data['file']
+#         if not file_obj.name.endswith('.csv'):
+#             return Response({'error': 'File type not supported'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         try:
+#             decoded_file = file_obj.read().decode('utf-8').splitlines()
+#             reader = csv.DictReader(decoded_file)
+#             serializer = CandidateSerializer(data=reader, many=True)
+#             if serializer.is_valid():
+#                 serializer.save()
+#                 return Response(serializer.data, status=status.HTTP_201_CREATED)
+#             else:
+#                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#         except Exception as e:
+#             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+    # def get_serializer_context(self):
+    #     poll_id = self.kwargs.get('poll_id')
+    #     return {'poll_id': poll_id}
+
+    # def perform_create(self, serializer):
+    #     poll_id = self.kwargs.get('poll_id')
+    #     poll = Poll.objects.get(id=poll_id)
+    #     serializer.save(poll=poll)
     
 
 class TestView(generics.ListAPIView):

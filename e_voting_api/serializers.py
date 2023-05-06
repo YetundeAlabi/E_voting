@@ -45,7 +45,9 @@ class UserLoginSerializer(serializers.ModelSerializer):
             return user
         raise serializers.ValidationError("Incorrect Credentials") 
 
+
 class CreatePollSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = Poll
         fields = ["name", "description"]
@@ -53,32 +55,40 @@ class CreatePollSerializer(serializers.ModelSerializer):
 
 class PollSerializer(serializers.ModelSerializer):
     # voters = serializers.StringRelatedField(many=True)
-    candidates = serializers.StringRelatedField(many=True)
+    candidates = serializers.StringRelatedField(many=True, read_only=True, required=False)
 
     class Meta:
         model = Poll
         fields = ["name", "description", "candidates"]
 
 
+# class CandidateSerializer(serializers.ModelSerializer):
+#     poll = serializers.PrimaryKeyRelatedField(
+#         many=True, queryset=Poll.objects.all())
+
+#     class Meta:
+#         model = Candidate
+#         fields = ["name", "poll"]
+
+class VoteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Vote
+        # fields = ['id', 'poll', 'candidate', 'voted_by']
+        fields = "__all__"
+
+
 class CandidateSerializer(serializers.ModelSerializer):
-    poll = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=Poll.objects.all())
+    votes = VoteSerializer(many=True, required=False)
 
     class Meta:
         model = Candidate
-        fields = ["name", "poll"]
+        fields = "__all__"
 
-
-class CreateCandidateSerializer(serializers.ModelSerializer):
-    
-    class Meta:
-        model = Candidate
-        fields = ["id", "name", "poll"]
-
-    def create(self, validated_data):
-        poll_id = self.context.get("poll_id")
-        validated_data["poll_id"] = poll_id
-        return super().create(validated_data)
+    # def create(self, validated_data):
+    #     poll_id = self.context.get("poll_id")
+    #     validated_data["poll_id"] = poll_id
+    #     return super().create(validated_data)
 
 
 class CandidateDetailSerializer(serializers.ModelSerializer):
@@ -100,12 +110,6 @@ class VotersPollSerializer(serializers.ModelSerializer):
         # polls = obj.
         pass
 
-
-class VoteSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Vote
-        fields = ['id', 'poll', 'candidate', 'voted_by']
 
 
 class VoterImportSerializer(serializers.ModelSerializer):
