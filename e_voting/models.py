@@ -63,10 +63,7 @@ class Voter(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, unique=False, on_delete=models.CASCADE)
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="voters")
 
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=['poll'], name='unique_voter_poll')
-        ]
+
     def __str__(self):
         self.user.email
 

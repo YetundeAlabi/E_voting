@@ -108,28 +108,77 @@ class VotersPollSerializer(serializers.ModelSerializer):
         fields = ["id"]
 
     
+class UserEmailField(serializers.EmailField):
+    def to_internal_value(self, data):
+        print(data)
+        user = User.objects.get(email=data)
+        print(user)
+        try:
+            user = User.objects.filter(email=data).exists()
+            if user:
+                return data
+        except User.DoesNotExist:
+            raise serializers.ValidationError('User with this email does not exist.')
+        
+# serializers.py
 
+# from rest_framework import serializers
+# from django.contrib.auth import get_user_model
+# from .models import Voter, Poll
+
+# User = get_user_model()
 
 class VoterSerializer(serializers.ModelSerializer):
-   
     user = UserDetailSerializer(read_only=True)
-    # poll = PollSerializer()
-    
-
     class Meta:
         model = Voter
-        # fields = ["id", "user", "poll"]
-        fields = "__all__"
+        fields = ['id', 'user', 'poll']
+        read_only_fields = ['id']
+
+class AddVoterSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    poll_id = serializers.IntegerField()
 
     def create(self, validated_data):
-        print(validated_data)
-        # Check if a voter with the same user_id and poll already exists
-        if Voter.objects.filter(user=validated_data['user'], poll=validated_data['poll']).exists():
+        email = validated_data['email']
+        poll_id = validated_data['poll_id']
+        user = User.objects.get(email=email)
+        poll = Poll.objects.get(id=poll_id)
+        if Voter.objects.filter(user=user, poll=poll).exists():
             raise serializers.ValidationError("A voter with the same user and poll already exists.")
+        return Voter.objects.create(user=user, poll=poll)
         
-        poll = validated_data.pop("poll") 
+
+    # def validate(self, data):
+
+    #     if Voter.objects.filter(user=data['user'], poll=data['poll']).exists():
+    #         raise serializers.ValidationError("A voter with the same user and poll already exists.")
+# views.py
+
+
+# class VoterSerializer(serializers.ModelSerializer):
+   
+#     # user = UserDetailSerializer(read_only=True)
+#     user = UserEmailField()
+#     # poll = PollSerializer()
+    
+
+#     class Meta:
+#         model = Voter
+#         # fields = ["id", "user", "poll"]
+#         fields = "__all__"
+
+#     def create(self, validated_data):
+#         print(validated_data)
+#         # Check if a voter with the same user_id and poll already exists
+#         if Voter.objects.filter(user=validated_data['user'], poll=validated_data['poll']).exists():
+#             raise serializers.ValidationError("A voter with the same user and poll already exists.")
+#         user = validated_data.pop("user")
+#         poll = validated_data.pop("poll") 
+        
+#         return Voter.objects.create(user=user, poll=poll)
         # Create the new voter object
-        return Voter.objects.create(user=self.context['request'].user, poll=poll)
+        # return Voter.objects.create(user=self.context['request'].user, poll=poll)
 
     # def create(self, validated_data):
     #     print(validated_data)

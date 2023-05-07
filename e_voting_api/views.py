@@ -162,13 +162,26 @@ class PollDetailView(generics.RetrieveUpdateDestroyAPIView):
 #         voter.save()
 
 
+
+class AddVoterToPollView(generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Voter.objects.all()
+    serializer_class = serializers.VoterSerializer
+
+    def post(self, request):
+        serializer = serializers.AddVoterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        voter = serializer.save()
+        voter_serializer = serializers.VoterSerializer(voter)
+        return Response(voter_serializer.data)
+
+
 class VoterListCreateView(generics.ListCreateAPIView):
     queryset = Voter.objects.all()
     serializer_class = serializers.VoterSerializer
     permission_classes = [IsAuthenticated]
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    
 
 
 class VoterRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
