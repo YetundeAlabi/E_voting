@@ -107,14 +107,13 @@ class UserLoginAPIView(GenericAPIView):
 class PollListView(generics.ListCreateAPIView):
     serializer_class = serializers.PollSerializer
     permission_classes = [IsAdminOrReadOnly, IsAuthenticated]
-    queryset = Poll.objects.all()
 
     def get_queryset(self):
-        return Poll.objects.filter(is_active=True).all()
+        return Poll.pollobjects.all() #only get active polls
 
 
-class PollDetailView(generics.UpdateAPIView):
-    queryset = Poll.objects.all()
+class PollDetailView(generics.RetrieveUpdateAPIView):
+    queryset = Poll.pollobjects.all() #only get active polls
     serializer_class = serializers.PollDetailSerializer
     permission_classes = [IsAdminOrReadOnly, IsAuthenticated]
 
@@ -126,7 +125,12 @@ class PollDetailView(generics.UpdateAPIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-class PollDeleteView(generics.DestroyAPIView):
+
+class PollDestroyView(generics.DestroyAPIView):
+    queryset = Poll.objects.all()
+    serializer_class = serializers.PollDetailSerializer
+    permission_classes = [IsAdminUser]
+
 
     def perform_destroy(self, instance):
         instance.is_deleted = True
@@ -181,11 +185,26 @@ class CandidateCreateView(generics.ListCreateAPIView):
 #     #     voter.save()
 #     #     voter_serializer = serializers.VoterSerializer(voter)
 #     #     return Response(voter_serializer.data)
+class VoterListView(generics.ListAPIView):
+    serializer_class = serializers.VoterSerializer
+    queryset = Voter.objects.all()
+    # permission_classes = [I]
 
-class VoterRegistrationView(generics.CreateAPIView):
+class ListPollVoterView(generics.ListAPIView):
+    serializer_class = serializers.VoterSerializer
+    permission_classes = [IsAuthenticated]
+
+
+    def get_queryset(self):
+        return Voter.objects.filter(poll_id = self.kwargs["pk"])
+
+
+class AddVoterToPollView(generics.CreateAPIView):
     serializer_class = serializers.VoterEmailSerializer
     permission_classes = [IsAdminUser]
+    # queryset = Voter.objects.all()
 
+    
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context['poll_id'] = self.kwargs.get('pk')
@@ -199,6 +218,27 @@ class VoterRegistrationView(generics.CreateAPIView):
         return Response(voter_serializer.data, status=status.HTTP_201_CREATED)
 
 
+class VoterDestroyView(generics.DestroyAPIView):
+    queryset = Poll.objects.all()
+    serializer_class = serializers.VoterSerializer
+    permission_classes = [IsAdminUser]
+    
+
+    def get_queryset(self):
+        return Poll.objects.filter(voters__id = self.kwargs["voter_pk"])
+        
+
+    # def perform_destroy(self, instance):
+    #     instance.is_deleted = True
+    #     instance.save()
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance.is_active:
+            self.perform_destroy(instance)
+            return Response({"message":"Voter successfully deleted"}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"message: Can't delete a voter on an active poll"})
+    
 
 # class AddVoterToPollView(generics.ListCreateAPIView):
 #     permission_classes = [IsAuthenticated]
