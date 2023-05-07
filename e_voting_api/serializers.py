@@ -53,15 +53,18 @@ class PollSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Poll
-        fields = ["name", "description"]
+        fields = ["id", "name", "description"]
 
 
 class PollDetailSerializer(serializers.ModelSerializer):
     candidates = serializers.StringRelatedField(many=True, read_only=True, required=False)
+    # is_active = serializers.BooleanField()
 
     class Meta:
         model = Poll
-        fields = "__all__"
+        fields = ["id", "name", "description", "candidates", "is_active"]
+
+    # def get_is_active(self, obj):
 
     def update(self, instance, validated_data):
 
@@ -71,21 +74,68 @@ class PollDetailSerializer(serializers.ModelSerializer):
             instance.end_time = validated_data.get("end_time", instance.end_time)
             instance.description = validated_data.get("description", instance.description)
             instance.name = validated_data.get("description", instance.name)
-            # instance.save()  
+            instance.save()  
 
             """extend end time of poll when a poll is active"""
         elif instance.start_time < datetime.now().time() < instance.end_time: #extend end time of poll when a poll is active
             instance.end_time = validated_data.get("end_time", instance.end_time)
             instance.description = validated_data.get("description", instance.description)
             instance.name = validated_data.get("name", instance.name)
-            
+            instance.save()
+
             """ can't update a poll start_time when poll is active or update end time when poll has ended """
         elif instance.end_time < datetime.now().time() or instance.start_time < datetime.now().time():
             raise serializers.ValidationError("Poll has already started or ended.")
         
         return instance
+    
+
+class UserDetailSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = get_user_model()
+        fields = ["id", "email", "full_name", "phone_number"]
+
+    def get_full_name(self, obj):
+        return obj.get_full_name()
+
+class VotersPollSerializer(serializers.ModelSerializer):
+    # polls = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Poll
+        fields = ["id"]
+
+    
 
 
+class VoterSerializer(serializers.ModelSerializer):
+   
+    user = UserDetailSerializer(read_only=True)
+    # poll = PollSerializer()
+    
+
+    class Meta:
+        model = Voter
+        # fields = ["id", "user", "poll"]
+        fields = "__all__"
+
+    def create(self, validated_data):
+        print(validated_data)
+        # Check if a voter with the same user_id and poll already exists
+        if Voter.objects.filter(user=validated_data['user'], poll=validated_data['poll']).exists():
+            raise serializers.ValidationError("A voter with the same user and poll already exists.")
+        
+        poll = validated_data.pop("poll") 
+        # Create the new voter object
+        return Voter.objects.create(user=self.context['request'].user, poll=poll)
+
+    # def create(self, validated_data):
+    #     print(validated_data)
+    #     user = self.context["request"].user
+    #     poll = validated_data.pop("poll") 
+    #     return Voter.objects.create(user=user, poll=poll)
 
 # class CandidateSerializer(serializers.ModelSerializer):
 #     poll = serializers.PrimaryKeyRelatedField(
@@ -124,16 +174,10 @@ class CandidateDetailSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "poll"]
 
 
-class VotersPollSerializer(serializers.ModelSerializer):
-    polls = serializers.SerializerMethodField()
 
-    class Meta:
-        model = User
-        fields = ["id"]
-
-    def get_polls(self, obj):
-        # polls = obj.
-        pass
+    # def get_polls(self, obj):
+    #     # polls = obj.
+    #     pass
 
 
 

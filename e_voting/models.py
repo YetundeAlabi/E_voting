@@ -1,6 +1,7 @@
 import datetime
 
 from django.db import models
+from django.conf import settings
 from django.urls import reverse
 from accounts.models import User
 # from phonenumber_field.modelfields import PhoneNumberField
@@ -12,20 +13,17 @@ class Poll(models.Model):
     description = models.TextField(null=True)
     start_time = models.TimeField(default=datetime.time(8, 0)) #poll starts at 8:00am
     end_time = models.TimeField(default=datetime.time(16, 0)) #poll ends at 4:00pm
-    updated_start_time = models.TimeField(default=datetime.time(8, 0))
-    updated_end_time = models.TimeField(default=datetime.time(16, 0))
     is_deleted = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=False)
+    # is_active = models.BooleanField(default=False)
     last_updated = models.DateTimeField(auto_now=True)
     
     def __str__(self):
         return self.name
     
-    def is_now_active(self):
+    @property
+    def is_active(self):
         """ check if poll is active at current time """
         if self.start_time >= datetime.now().time() <= self.end_time:
-            self.is_active = True
-            self.save()
             return True  
         return False
 
@@ -38,7 +36,7 @@ class Poll(models.Model):
     
 
 class Candidate(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     image = models.ImageField(upload_to="e_voting/candidates", null=True)
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE, null=True, related_name="candidates")
 
@@ -62,10 +60,18 @@ class Vote(models.Model):
 
 
 class Voter(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, unique=False, on_delete=models.CASCADE)
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="voters")
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['poll'], name='unique_voter_poll')
+        ]
+    def __str__(self):
+        self.user.email
 
+    def get_full_name(self):
+        self.user.get_full_name()
 
 
 
