@@ -58,18 +58,19 @@ class PollSerializer(serializers.ModelSerializer):
 
 class PollDetailSerializer(serializers.ModelSerializer):
     candidates = serializers.StringRelatedField(many=True, read_only=True, required=False)
-    # is_active = serializers.BooleanField()
+    is_active = serializers.BooleanField()
 
     class Meta:
         model = Poll
         fields = ["id", "name", "description", "candidates", "is_active"]
 
-    # def get_is_active(self, obj):
+    def get_is_active(self, obj):
+        return obj.is_active()
 
     def update(self, instance, validated_data):
 
         """update start and end time before a poll start """
-        if instance.start_time > datetime.now().time() and instance.end_time > datetime.now().time(): #update poll when it has not started
+        if not instance.is_active(): #update poll when it has not started
             instance.start_time = validated_data.get("start_time", instance.start_time)
             instance.end_time = validated_data.get("end_time", instance.end_time)
             instance.description = validated_data.get("description", instance.description)
@@ -77,7 +78,7 @@ class PollDetailSerializer(serializers.ModelSerializer):
             instance.save()  
 
             """extend end time of poll when a poll is active"""
-        elif instance.start_time < datetime.now().time() < instance.end_time: #extend end time of poll when a poll is active
+        elif instance.is_active(): #extend end time of poll when a poll is active
             instance.end_time = validated_data.get("end_time", instance.end_time)
             instance.description = validated_data.get("description", instance.description)
             instance.name = validated_data.get("name", instance.name)
@@ -120,13 +121,6 @@ class UserEmailField(serializers.EmailField):
         except User.DoesNotExist:
             raise serializers.ValidationError('User with this email does not exist.')
         
-# serializers.py
-
-# from rest_framework import serializers
-# from django.contrib.auth import get_user_model
-# from .models import Voter, Poll
-
-# User = get_user_model()
 
 class VoterSerializer(serializers.ModelSerializer):
     user = UserDetailSerializer(read_only=True)
@@ -134,6 +128,7 @@ class VoterSerializer(serializers.ModelSerializer):
         model = Voter
         fields = ['id', 'user', 'poll']
         read_only_fields = ['id']
+
 
 class AddVoterSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -149,13 +144,29 @@ class AddVoterSerializer(serializers.Serializer):
         return Voter.objects.create(user=user, poll=poll)
         
 
-    # def validate(self, data):
+class VoterEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField()
 
-    #     if Voter.objects.filter(user=data['user'], poll=data['poll']).exists():
-    #         raise serializers.ValidationError("A voter with the same user and poll already exists.")
-# views.py
-
-
+    def create(self, validated_data):
+        email = validated_data.get('email')
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise serializers.ValidationError({'email': 'User with this email does not exist.'})
+        
+        poll_id = self.context.get('poll_id')
+        try:
+            poll = Poll.objects.get(id=poll_id)
+        except Poll.DoesNotExist:
+            raise serializers.ValidationError({'poll_id': 'Poll with this id does not exist.'})
+        
+        if poll.is_active():
+            raise serializers.ValidationError("Cannot add voter to an active pol")
+        
+        if Voter.objects.filter(user=user, poll=poll).exists():
+            raise serializers.ValidationError({'error': 'Voter with the same user and poll id already exists.'})
+        return Voter.objects.create(user=user, poll=poll)
+    
 # class VoterSerializer(serializers.ModelSerializer):
    
 #     # user = UserDetailSerializer(read_only=True)
@@ -222,11 +233,6 @@ class CandidateDetailSerializer(serializers.ModelSerializer):
         model = Candidate
         fields = ["id", "name", "poll"]
 
-
-
-    # def get_polls(self, obj):
-    #     # polls = obj.
-    #     pass
 
 
 

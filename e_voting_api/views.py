@@ -1,4 +1,5 @@
 import csv
+from django.shortcuts import get_object_or_404
 import jwt
 from datetime import datetime
 
@@ -153,13 +154,42 @@ class PollDetailView(generics.RetrieveUpdateDestroyAPIView):
 #     queryset = Voter.objects.all()
 
 #     # def get_queryset(self):
-#     #     return Voter.objects.filter(poll_id = self.kwargs.get("pk"))
-#     def post(self, request, *args, **kwargs):
-#         poll_id = request.data["poll"]
-#         poll = Poll.objects.get(poll_id)
-#         user = User.objects.get(id=request.user.id)
-#         voter = Voter(user=user, poll=poll)
-#         voter.save()
+#     #     return Voter.objects.filter(poll_id = self.kwargs["pk"])
+    
+#     # def post(self, request, *args, **kwargs):
+#     #     serializer = serializers.VoterEmailSerializer(data=request.data)
+#     #     serializer.is_valid(raise_exception=True)
+#     #     voter = serializer.save()
+#     #     user = User.objects.get(email=voter)
+#     #     # get the poll by id
+#     #     poll_id = self.kwargs["pk"]
+#     #     poll = Poll.objects.get(poll_id)
+        
+#     #     # check if voter already exists for this poll
+#     #     if Voter.objects.filter(user=user, poll=poll).exists():
+#     #         return Response({'error': 'Voter with the same user and poll id already exists.'}, 
+#     #                         status=status.HTTP_400_BAD_REQUEST)
+        
+#     #     voter = Voter(user=user, poll=poll)
+#     #     voter.save()
+#     #     voter_serializer = serializers.VoterSerializer(voter)
+#     #     return Response(voter_serializer.data)
+
+class VoterRegistrationView(generics.CreateAPIView):
+    serializer_class = serializers.VoterEmailSerializer
+    permission_classes = [IsAdminUser]
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['poll_id'] = self.kwargs.get('pk')
+        return context
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        voter = serializer.save()
+        voter_serializer = serializers.VoterSerializer(voter)
+        return Response(voter_serializer.data, status=status.HTTP_201_CREATED)
 
 
 
@@ -176,19 +206,18 @@ class AddVoterToPollView(generics.ListCreateAPIView):
         return Response(voter_serializer.data)
 
 
+# class AddVoterView(generics.)
+
 class VoterListCreateView(generics.ListCreateAPIView):
     queryset = Voter.objects.all()
     serializer_class = serializers.VoterSerializer
     permission_classes = [IsAuthenticated]
-
-    
 
 
 class VoterRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Voter.objects.all()
     serializer_class = serializers.VoterSerializer
     permission_classes = [IsAuthenticated]
-
 
 
 class CandidateListView(generics.ListCreateAPIView):
