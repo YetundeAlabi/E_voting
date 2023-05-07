@@ -1,21 +1,33 @@
 import datetime
 
 from django.db import models
+from django.db.models import Q
 from django.conf import settings
+from django.db.models.query import QuerySet
 from django.urls import reverse
 from accounts.models import User
-# from phonenumber_field.modelfields import PhoneNumberField
+
+now = datetime.datetime.now()
 
 
 # Create your models here.
 class Poll(models.Model):
+
+    class PollObjects(models.Manager):
+        def get_queryset(self) -> QuerySet:
+            return super().get_queryset().filter(
+                Q(start_time__lte=now) & Q(end_time__gte=now) & Q(is_deleted=False)
+            )
+        
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(null=True)
     start_time = models.TimeField(default=datetime.time(8, 0)) #poll starts at 8:00am
     end_time = models.TimeField(default=datetime.time(16, 0)) #poll ends at 4:00pm
     is_deleted = models.BooleanField(default=False)
-    # is_active = models.BooleanField(default=False)
     last_updated = models.DateTimeField(auto_now=True)
+
+    objects = models.Manager() #default manager
+    pollobjects = PollObjects() #custom manager
     
     def __str__(self):
         return self.name
@@ -27,7 +39,6 @@ class Poll(models.Model):
             return True  
         return False
 
-    
     def get_absolute_url(self):
         return reverse("poll_detail", kwargs={"pk": self.pk})
     

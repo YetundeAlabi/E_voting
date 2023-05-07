@@ -205,23 +205,25 @@ class VoterEmailSerializer(serializers.Serializer):
 #         model = Candidate
 #         fields = ["name", "poll"]
 
-class VoteSerializer(serializers.ModelSerializer):
+# class VoteSerializer(serializers.ModelSerializer):
 
-    class Meta:
-        model = Vote
-        # fields = ['id', 'poll', 'candidate', 'voted_by']
-        fields = "__all__"
+#     class Meta:
+#         model = Vote
+#         # fields = ['id', 'poll', 'candidate', 'voted_by']
+#         fields = "__all__"
 
 
 class CandidateSerializer(serializers.ModelSerializer):
-    votes = VoteSerializer(many=True, required=False)
+    # votes = VoteSerializer(many=True, required=False)
+    name = serializers.CharField()
 
     class Meta:
         model = Candidate
-        fields = "__all__"
+        fields = ["name"]
 
     # def create(self, validated_data):
     #     poll_id = self.context.get("poll_id")
+    #     poll = Poll.objects.get(poll_id=poll_id)
     #     validated_data["poll_id"] = poll_id
     #     return super().create(validated_data)
 
