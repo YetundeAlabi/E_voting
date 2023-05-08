@@ -163,9 +163,7 @@ class VoterEmailSerializer(serializers.Serializer):
 class VoterDetailSerializer(serializers.ModelSerializer):
     user = UserDetailSerializer(read_only=True)
     poll = serializers.SerializerMethodField
-    # poll = PollSerializer(many=True, read_only=True) 
-    # poll = serializers.PrimaryKeyRelatedField(many=True, queryset=Poll.objects.all())
-
+   
     class Meta:
         model = Voter
         fields = ["id", "user", "poll"]

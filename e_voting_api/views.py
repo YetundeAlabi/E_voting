@@ -207,14 +207,9 @@ class VoterDestroyView(generics.DestroyAPIView):
     serializer_class = serializers.VoterSerializer
     permission_classes = [IsAdminUser]
     
-
     def get_queryset(self):
         return Poll.objects.filter(voters__id = self.kwargs["voter_pk"])
         
-
-    # def perform_destroy(self, instance):
-    #     instance.is_deleted = True
-    #     instance.save()
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
