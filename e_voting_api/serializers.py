@@ -133,6 +133,32 @@ class VoterSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 
+# class VoterEmailSerializer(serializers.Serializer):
+#     email = serializers.EmailField()
+
+#     def create(self, validated_data):
+#         email = validated_data.get('email')
+#         try:
+#             user = User.objects.get(email=email)
+#         except User.DoesNotExist:
+#             raise serializers.ValidationError({'email': 'User with this email does not exist.'})
+        
+#         poll_id = self.context.get('poll_id')
+        
+#         try:
+#             poll = Poll.objects.get(id=poll_id)
+#         except Poll.DoesNotExist:
+#             raise serializers.ValidationError({'poll_id': 'Poll with this id does not exist.'})
+        
+#         if Voter.objects.filter(user=user, poll=poll).exists():
+#             raise serializers.ValidationError({'error': 'Voter with the same user and poll id already exists.'})
+        
+#         if poll.is_active: #only add a poll before polls begin
+#             raise serializers.ValidationError("Cannot add voter to an active poll")
+        
+#         return Voter.objects.create(user=user, poll=poll)
+    
+    
 class VoterEmailSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
@@ -144,21 +170,26 @@ class VoterEmailSerializer(serializers.Serializer):
             raise serializers.ValidationError({'email': 'User with this email does not exist.'})
         
         poll_id = self.context.get('poll_id')
-        
-        try:
-            poll = Poll.objects.get(id=poll_id)
-        except Poll.DoesNotExist:
-            raise serializers.ValidationError({'poll_id': 'Poll with this id does not exist.'})
-        
-        if Voter.objects.filter(user=user, poll=poll).exists():
-            raise serializers.ValidationError({'error': 'Voter with the same user and poll id already exists.'})
-        
-        if poll.is_active: #only add a poll before polls begin
-            raise serializers.ValidationError("Cannot add voter to an active poll")
+        poll = self._get_poll(poll_id)
+        self._validate_voter(user, poll)
         
         return Voter.objects.create(user=user, poll=poll)
     
+    def _get_poll(self, poll_id):
+        try:
+            print(poll_id)
+            poll = Poll.objects.get(id=poll_id)
+        except Poll.DoesNotExist:
+            raise serializers.ValidationError({'poll_id': 'Poll with this id does not exist.'})
+        return poll
     
+    def _validate_voter(self, user, poll):
+        if Voter.objects.filter(user=user, poll=poll).exists():
+            raise serializers.ValidationError({'error': 'Voter with the same user and poll id already exists.'})
+        
+        # if poll.is_active: #only add a poll before polls begin
+        #     raise serializers.ValidationError("Cannot add voter to an active poll")
+
 
 class VoterDetailSerializer(serializers.ModelSerializer):
     user = UserDetailSerializer(read_only=True)
@@ -172,8 +203,33 @@ class VoterDetailSerializer(serializers.ModelSerializer):
         polls = obj.poll.filter(user=self.request.user).all()
         return PollSerializer(polls, many=True).data
 
-    
 
+class FileImportSerializer(serializers.Serializer):
+    file = serializers.FileField(max_length=200, allow_empty_file=False, use_url=False)
+
+
+
+    def validate(self, data):
+        file = data.get("file", None)
+        if not file:
+            raise serializers.ValidationError('Please provide a file.')
+        
+        """ Check that the file uploaded is csv file"""
+        if not file.name.endswith(".csv"):
+            raise serializers.ValidationError("File type not supported. file must be a csv file")
+        
+        return data
+
+    def create(self, validated_data):
+        # Implement the create method to save the uploaded file
+        file = validated_data['file']
+        return file
+
+
+class VoterImportSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    
    
 #     def create(self, validated_data):
 #         print(validated_data)
@@ -227,11 +283,7 @@ class VoterDetailSerializer(serializers.ModelSerializer):
 
 
 
-class VoterImportSerializer(serializers.ModelSerializer):
 
-    class Meta:
-        model = Voter
-        fields = "__all__"
 
 # class AddVoterSerializer(serializers.Serializer):
 #     email = serializers.EmailField()

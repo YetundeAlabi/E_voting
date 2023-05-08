@@ -13,7 +13,8 @@ urlpatterns = [
     path('polls/<int:pk>/voter/', views.AddVoterToPollView.as_view(), name="add_poll_voters"),
     path('polls/<int:pk>/voters/<int:voter_pk>/', views.VoterDestroyView.as_view(), name="remove_voter"),
     path("voters/", views.VoterListView.as_view(), name="voterlist"),
-    path("voters/<int:pk>/", views.VoterPollListView.as_view(), name="voters-polls")
+    path("voters/<int:pk>/", views.VoterPollListView.as_view(), name="voters-polls"),
+    path("polls/<int:pk>/import/", views.VoterImportView.as_view(), name="import-voters")
    
     # path("", views.TestView.as_view())
 

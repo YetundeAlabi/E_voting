@@ -1,13 +1,15 @@
 import csv
+import logging
+from logging import Logger, LoggerAdapter
 from django.shortcuts import get_object_or_404
 import jwt
 from datetime import datetime
-
 
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from django.conf import settings
 from django.utils import timezone
+from django.db import transaction
 
 from rest_framework import generics
 from rest_framework.generics import GenericAPIView, CreateAPIView
@@ -31,7 +33,7 @@ from .utils import Util
 from e_voting.models import Candidate, Poll, Vote, Voter
 from e_voting_api.permissions import IsAdminOrReadOnly
 
-
+logger = logging.getLogger(__name__)
 
 class UserSignUpView(CreateAPIView):
     """Create a new user in the system"""
@@ -63,7 +65,7 @@ class UserSignUpView(CreateAPIView):
     
 
 class VerifyEmail(GenericAPIView):
-    """ An endpoint to verify if user email is authenticated before login"""
+    """ An endpoint to verify if user email is authentic before login"""
     permission_classes = (AllowAny,)
     authentication_classes = ()
     serializer_class = EmailVerificationSerializer
@@ -217,7 +219,223 @@ class VoterDestroyView(generics.DestroyAPIView):
             self.perform_destroy(instance)
             return Response({"message":"Voter successfully deleted"}, status=status.HTTP_204_NO_CONTENT)
         return Response({"message: Can't delete a voter on an active poll"})
+
+# class VoterImportView(CreateAPIView):
+#     parser_classes = (MultiPartParser, FormParser)
+#     permission_classes = [IsAdminUser]
+#     serializer_class = serializers.VoterEmailSerializer
+
+#     def get_serializer_context(self):
+#         context = super().get_serializer_context()
+#         context['poll_id'] = self.kwargs.get('pk')
+#         print("got here")
+#         print(context, "hello")
+#         return context
     
+#     def post(self, request, *args, **kwargs):
+#         # csv_file = request.FILES.get('file')
+#         serializer = serializers.FileImportSerializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+#         file = serializer.validated_data.get("file")
+#         # file = serializer.save()
+#         rows_with_errors = []
+#         try:
+#             decoded_file = file.read().decode('utf-8').splitlines()
+#             reader = list(csv.DictReader(decoded_file))
+
+#             with transaction.atomic():
+#                 # for row in reader:
+#                 for i, row in enumerate(reader, start=1):
+#                     serializer = serializers.VoterEmailSerializer(data=reader, many=True, context=self.get_serializer_context())
+#                     if serializer.is_valid():
+#                         serializer.save()
+#                         # voter_serializer = serializers.VoterSerializer(voter)
+#                         # return Response(voter_serializer.data, status=status.HTTP_201_CREATED)
+#                         # return Response({'status': 'success'})
+#                     else:
+#                         rows_with_errors.append(i)
+#                         logger.error(f"Error importing row {i}: {serializer.errors}")
+#                 if rows_with_errors:
+#                     transaction.rollback()
+#                     return Response({"error": f"Errors in rows {', '.join(map(str, rows_with_errors))}"}, status=status.HTTP_400_BAD_REQUEST)
+#                 else:
+#                     return Response({'status': 'success'})
+#         except Exception as e:
+#             logger.error('An error occurred: %s', str(e))
+#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+        #                 Logger.error(f"Error importing row {row}: {serializer.errors}")
+        #                 transaction.rollback()
+        #                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # except Exception as e:
+        #     return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class VoterImportView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+
+    def post(self, request, *args, **kwargs):
+        serializer = serializers.FileImportSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        file = serializer.validated_data.get("file")
+
+        try:
+            decoded_file = file.read().decode('utf-8').splitlines()
+            reader = csv.DictReader(decoded_file)
+
+            # Collect all the rows with errors instead of returning on the first error
+            errors = []
+            voters = []
+
+            for row in reader:
+                row_serializer = serializers.VoterEmailSerializer(data=row)
+
+                if not row_serializer.is_valid():
+                    errors.append({'row': row, 'errors': row_serializer.errors})
+                    continue
+
+                user = User.objects.filter(email=row['email']).first()
+
+                if not user:
+                    errors.append({'row': row, 'errors': {'email': ['User with this email does not exist']}})
+                    continue
+
+                poll_id = self.kwargs['pk']
+                poll = Poll.objects.filter(id=poll_id).first()
+
+                if not poll:
+                    errors.append({'row': row, 'errors': {'poll_id': ['Poll with this ID does not exist']}})
+                    continue
+
+                # Check if voter already exists for this poll
+                if Voter.objects.filter(user=user, poll=poll).exists():
+                    errors.append({'row': row, 'errors': {'email': ['Voter with this user and poll ID already exists']}})
+                    continue
+
+                voter = Voter(user=user, poll=poll)
+                voter.save()
+
+            if errors:
+                # If there are any errors, rollback the transaction and return a response with errors
+                transaction.rollback()
+                return Response({'status': 'failure', 'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
+
+            # If no errors, commit the transaction and return a success response
+            transaction.commit()
+            return Response({'status': 'success'}, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+# class CandidateImportView(APIView):
+#     parser_classes = (MultiPartParser, FormParser)
+
+#     def post(self, request, *args, **kwargs):
+#         file_obj = request.data['file']
+#         if not file_obj.name.endswith('.csv'):
+#             return Response({'error': 'File type not supported'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         try:
+#             decoded_file = file_obj.read().decode('utf-8').splitlines()
+#             reader = csv.DictReader(decoded_file)
+#             serializer = CandidateSerializer(data=reader, many=True)
+#             if serializer.is_valid():
+#                 serializer.save()
+#                 return Response(serializer.data, status=status.HTTP_201_CREATED)
+#             else:
+#                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#         except Exception as e:
+#             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# class CreateStaffFromCSV(LoginRequiredMixin, PermissionRequiredMixin, View):
+#     template_name = 'organization/staff_create_from_csv.html'
+    
+#     def get(self, request, *args, **kwargs):
+#         form = CsvFileForm
+#         context = {'form': form }
+#         return render(request, self.template_name, context)
+
+#     def post(self, request, *args, **kwargs):
+#         csv_file = request.FILES.get('file')
+#         current_org = request.user.organization
+#         slug = current_org.slug
+
+#         if not csv_file:
+#             messages.error(request, 'Please select a CSV file.')
+#             return HttpResponseRedirect(reverse("organization:staff_create_csv", kwargs={'org_slug': slug }))
+
+#         try:
+#             decoded_file = csv_file.read().decode('utf-8').splitlines()
+#             reader = csv.DictReader(decoded_file)
+#             with transaction.atomic():
+#                 for row in reader:
+#                     staff = Staff(
+#                         first_name=row['first_name'],
+#                         last_name=row['last_name'],
+#                         personal_email=row['personal_email'],
+#                         gender=row['gender'],
+#                         username=row['username'],
+#                         phone_number=row['phone_number'],
+#                         date_of_birth=row['date_of_birth'],
+#                         state_of_origin=row['state_of_origin'],
+#                         staff_status=row['staff_status'],
+#                         next_of_kin_name=row['next_of_kin_name'],
+#                         next_of_kin_email=row['next_of_kin_email'],
+#                         next_of_kin_phone_number=row['next_of_kin_phone_number'],
+#                         dept_id=row['dept_id'],
+#                         job_title_id=row['job_title_id'],   
+#                     )
+#                     try:
+#                         staff.full_clean()
+#                     except ValidationError as e:
+#                         messages.error(request, f"Error on row {reader.line_num}: {e}")
+#                         return HttpResponseRedirect(reverse("organization:staff_create_csv", kwargs={'org_slug': slug }))
+#                     try:
+#                         staff.work_email = f"{staff.first_name[0].lower()}{staff.last_name.lower()}@{current_org.company_email_domain}"
+#                         staff.organization = current_org
+#                         password = generate_password()
+#                         user = User.objects.create_user(username=staff.username,
+#                                     email=staff.work_email,
+#                                     password=password,
+#                                     )
+#                         staff.user = user
+#                         staff.save()
+#                     except IntegrityError:
+#                         transaction.rollback()
+#                         messages.error(request, f"Error on row {reader.line_num}: Staff with username '{row['username']}' already exists.")
+#                         return HttpResponseRedirect(reverse("organization:staff_create_csv", kwargs={'org_slug': slug }))
+#         except csv.Error as e:
+#             messages.error(request, f'Error processing CSV file: {e}')
+#             return HttpResponseRedirect(reverse("organization:staff_create_csv", kwargs={'org_slug': slug }))
+            
+
+#         messages.success(request, 'Staff successfully created.')
+#         subject = f"{current_org.name}: LOGIN CREDENTIALS"
+#         message = f"Dear {staff.fullname()},\n\nWelcome to {current_org.name}.\n\nLogin to your dashboard using these credentials.\n\nUsername: {staff.username}\nPassword: {password}"
+#         recipient_list = [staff.personal_email,]
+#         # send_mail(subject, message, settings.EMAIL_HOST_USER, recipient_list)
+#         return HttpResponseRedirect(reverse("organization:admin_dashboard",  kwargs={'org_slug': slug }))
+
+#     def has_permission(self):
+#         org_slug = self.kwargs['org_slug']
+#         return self.request.user.organization.slug == org_slug
+
+
+
+    
+
+#     # def perform_create(self, serializer):
+#     #     poll_id = self.kwargs.get('poll_id')
+#     #     poll = Poll.objects.get(id=poll_id)
+#     #     serializer.save(poll=poll)
+    
+
+class TestView(generics.ListAPIView):
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
+    permission_classes = []
 
 # class AddVoterToPollView(generics.ListCreateAPIView):
 #     permission_classes = [IsAuthenticated]
@@ -289,40 +507,4 @@ class VoterDestroyView(generics.DestroyAPIView):
     
 
 
-# class CandidateImportView(APIView):
-#     parser_classes = (MultiPartParser, FormParser)
-
-#     def post(self, request, *args, **kwargs):
-#         file_obj = request.data['file']
-#         if not file_obj.name.endswith('.csv'):
-#             return Response({'error': 'File type not supported'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         try:
-#             decoded_file = file_obj.read().decode('utf-8').splitlines()
-#             reader = csv.DictReader(decoded_file)
-#             serializer = CandidateSerializer(data=reader, many=True)
-#             if serializer.is_valid():
-#                 serializer.save()
-#                 return Response(serializer.data, status=status.HTTP_201_CREATED)
-#             else:
-#                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#         except Exception as e:
-#             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-
-
-
-    
-
-    # def perform_create(self, serializer):
-    #     poll_id = self.kwargs.get('poll_id')
-    #     poll = Poll.objects.get(id=poll_id)
-    #     serializer.save(poll=poll)
-    
-
-class TestView(generics.ListAPIView):
-    serializer_class = UserSerializer
-    queryset = User.objects.all()
-    # permission_classes = []
+# 
