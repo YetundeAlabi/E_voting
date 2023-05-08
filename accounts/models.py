@@ -37,7 +37,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=30, blank=True, null=True)
     last_name = models.CharField(max_length=30, blank=True, null=True)
     phone_number = PhoneNumberField(blank=True)
-    voted = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
 
     objects = UserManager()
@@ -57,9 +56,4 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_full_name(self):
         return f'{self.first_name} {self.last_name}'
 
-    def cast_vote(self):
-        if not self.voted:
-            self.voted = True
-            self.save()
-            return True
-        return False
+    

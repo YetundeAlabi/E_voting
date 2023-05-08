@@ -63,7 +63,7 @@ class Candidate(models.Model):
 
 class Vote(models.Model):
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="poll_votes")
-    choice = models.ForeignKey(Candidate, on_delete=models.CASCADE, related_name ="candidate_votes")
+    candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE, related_name ="candidate_votes")
     voted_by = models.ForeignKey(User, on_delete=models.CASCADE)
 
     class Meta:
@@ -73,7 +73,7 @@ class Vote(models.Model):
 class Voter(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, unique=False, on_delete=models.CASCADE)
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="voters")
-
+    is_voted = models.BooleanField(default=False)
 
     def __str__(self):
         self.user.email
@@ -81,5 +81,11 @@ class Voter(models.Model):
     def get_full_name(self):
         self.user.get_full_name()
 
+    def cast_vote(self):
+        if not self.is_voted:
+            self.is_voted = True
+            self.save()
+            return True
+        return False
 
 

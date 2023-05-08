@@ -115,7 +115,8 @@ class PollListView(generics.ListCreateAPIView):
 
 
 class PollDetailView(generics.RetrieveUpdateAPIView):
-    queryset = Poll.objects.all() #only get active polls
+    """ Endpoint that show details about active poll with user detail"""
+    queryset = Poll.pollobjects.all() #only get active polls
     serializer_class = serializers.PollDetailSerializer
     permission_classes = [IsAdminOrReadOnly, IsAuthenticated]
 
@@ -129,6 +130,7 @@ class PollDetailView(generics.RetrieveUpdateAPIView):
     
 
 class PollDestroyView(generics.DestroyAPIView):
+    """ Delete poll endpoint """
     queryset = Poll.objects.all()
     serializer_class = serializers.PollDetailSerializer
     permission_classes = [IsAdminUser]
@@ -145,6 +147,8 @@ class PollDestroyView(generics.DestroyAPIView):
   
 
 class CandidateCreateView(generics.ListCreateAPIView):
+    """endpoint to get and create candidate for a poll"""
+
     queryset = Candidate.objects.all()
     serializer_class = CandidateSerializer
     permission_classes = [IsAdminUser]
@@ -173,9 +177,6 @@ class VoterPollListView(generics.ListAPIView):
     def get_queryset(self):
         return Voter.objects.filter(user=self.request.user).all()
 
-    # def get_object(self):
-    #     obj = self.polls.filter(user=)
-
 
 class ListPollVoterView(generics.ListAPIView):
     serializer_class = serializers.VoterSerializer
@@ -186,10 +187,9 @@ class ListPollVoterView(generics.ListAPIView):
 
 
 class AddVoterToPollView(generics.CreateAPIView):
+    "add voters to poll through an admin"
     serializer_class = serializers.VoterEmailSerializer
     permission_classes = [IsAdminUser]
-    # queryset = Voter.objects.all()
-
     
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -219,7 +219,6 @@ class VoterDestroyView(generics.DestroyAPIView):
             self.perform_destroy(instance)
             return Response({"message":"Voter successfully deleted"}, status=status.HTTP_204_NO_CONTENT)
         return Response({"message: Can't delete a voter on an active poll"})
-
 
 
 class VoterImportView(APIView):
@@ -280,6 +279,49 @@ class VoterImportView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+
+class CreateVoteView(generics.CreateAPIView):
+    serializer_class = serializers.VoteSerializer
+
+    def post(self, request, *args, **kwargs):
+        poll_id = self.kwargs["pk"]
+        candidate_id = self.kwargs["candidate_pk"]
+        # user= request.user
+        try:
+            """ get only active polls. Can't vote before start time"""
+            poll = Poll.pollobjects.get(id=poll_id)
+            candidate = Candidate.objects.get(id=candidate_id)
+            user = request.user
+            voter = Voter.objects.get(poll=poll, user=user)
+
+            """ check if voter has voted """
+            if voter.cast_vote():
+                vote = Vote.objects.create(poll=poll, candidate=candidate, voted_by=user)
+                serializer = serializers.VoteSerializer(vote)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'error': 'This voter has already cast a vote for this poll.'}, status=status.HTTP_400_BAD_REQUEST)
+        except Poll.DoesNotExist:
+            return Response({'error': 'Poll does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+        except Candidate.DoesNotExist:
+            return Response({'error': 'Candidate does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+        except Voter.DoesNotExist:
+            return Response({'error': 'This user is not registered to vote in this poll.'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class PollWinnersView(generics.ListAPIView):
+    queryset = Poll.objects.filter(votes__isnull=False).distinct()
+    serializer_class = serializers.PollWinnerSerializer
+
+    def get(self, request, *args, **kwargs):
+        winners = []
+        for poll in self.get_queryset():
+            votes = Vote.objects.filter(poll=poll)
+            winner = max(votes, key=lambda vote: vote.candidate_votes.count())
+            winners.append(winner.candidate)
+        serializer = self.get_serializer(winners, many=True)
+        return Response(serializer.data)
 
 
 class TestView(generics.ListAPIView):

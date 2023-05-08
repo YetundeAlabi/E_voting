@@ -1,11 +1,13 @@
 from datetime import datetime
 
+from django.db.models import Count
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework import serializers
-from e_voting.models import Candidate, Vote, Poll, Voter
+
 from rest_framework.exceptions import AuthenticationFailed
 from django.utils import timezone
 
+from e_voting.models import Candidate, Vote, Poll, Voter
 
 User = get_user_model()
 
@@ -65,7 +67,15 @@ class UserDetailSerializer(serializers.ModelSerializer):
 
     def get_full_name(self, obj):
         return obj.get_full_name()
-    
+
+
+class VoteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Vote
+        # fields = ['id', 'poll', 'candidate', 'voted_by']
+        fields = "__all__"
+ 
 
 class VoterLoginDetailSerializer(serializers.ModelSerializer):
     user = UserDetailSerializer(read_only=True)
@@ -189,96 +199,49 @@ class FileImportSerializer(serializers.Serializer):
         """ Check that the file uploaded is csv file"""
         if not file.name.endswith(".csv"):
             raise serializers.ValidationError("File type not supported. file must be a csv file")
-        
         return data
 
     def create(self, validated_data):
-        # Implement the create method to save the uploaded file
         file = validated_data['file']
         return file
 
 
-class VoterImportSerializer(serializers.Serializer):
-    email = serializers.EmailField()
+class CandidateDetailSerializer(serializers.ModelSerializer):
+    vote_count = serializers.SerializerMethodField(read_only=True)
+    class Meta:
+        model = Candidate
+        fields = ["name", "vote_count"]
 
+    def get_vote_count(self, obj):
+        return obj.get_vote_count()
+
+
+class PollResultSerializer(PollDetailSerializer):
+    total_votes = serializers.SerializerMethodField(read_only=True)
+    candidates = CandidateDetailSerializer(many=True, read_only=True)
+    winner = serializers.SerializerMethodField()
+
+    model=Poll
+    fields = ("id", "name", "description", "end_time", "start_time", "candidates", "is_active", "voter", "winner", "total_votes")
+
+    def get_total_votes(self, obj):
+        return obj.get_total_vote()
     
-   
-#     def create(self, validated_data):
-#         print(validated_data)
-#         # Check if a voter with the same user_id and poll already exists
-#         if Voter.objects.filter(user=validated_data['user'], poll=validated_data['poll']).exists():
-#             raise serializers.ValidationError("A voter with the same user and poll already exists.")
-#         user = validated_data.pop("user")
-#         poll = validated_data.pop("poll") 
-        
-#         return Voter.objects.create(user=user, poll=poll)
-        # Create the new voter object
-        # return Voter.objects.create(user=self.context['request'].user, poll=poll)
-
-    # def create(self, validated_data):
-    #     print(validated_data)
-    #     user = self.context["request"].user
-    #     poll = validated_data.pop("poll") 
-    #     return Voter.objects.create(user=user, poll=poll)
-
-# class CandidateSerializer(serializers.ModelSerializer):
-#     poll = serializers.PrimaryKeyRelatedField(
-#         many=True, queryset=Poll.objects.all())
-
-#     class Meta:
-#         model = Candidate
-#         fields = ["name", "poll"]
-
-# class VoteSerializer(serializers.ModelSerializer):
-
-#     class Meta:
-#         model = Vote
-#         # fields = ['id', 'poll', 'candidate', 'voted_by']
-#         fields = "__all__"
+    def get_winner(self, obj):
+        """get all candidates votes and arrange by descending order. winner is the first candidate"""
+        queryset = obj.candidates.annotate(vote_count=Count("candidate_votes").order_by('-vote_count'))
+        if queryset.exists():
+            winner = queryset[0]
+            serializer = CandidateDetailSerializer(winner)
+            return serializer.data
 
 
 
-    # def create(self, validated_data):
-    #     poll_id = self.context.get("poll_id")
-    #     poll = Poll.objects.get(poll_id=poll_id)
-    #     validated_data["poll_id"] = poll_id
-    #     return super().create(validated_data)
+class PollWinnerSerializer(serializers.ModelSerializer):
+    poll_name = serializers.CharField(source='poll.name')
+    winner_name = serializers.CharField(source='candidate.name')
+    
+    class Meta:
+        model = Vote
+        fields = ('poll_name', 'winner_name')
 
-
-# class CandidateDetailSerializer(serializers.ModelSerializer):
-#     poll = PollSerializer(many=True, read_only=True)
-
-#     class Meta:
-#         model = Candidate
-#         fields = ["id", "name", "poll"]
-
-
-
-
-
-
-# class AddVoterSerializer(serializers.Serializer):
-#     email = serializers.EmailField()
-#     poll_id = serializers.IntegerField()
-
-#     def create(self, validated_data):
-#         email = validated_data['email']
-#         poll_id = validated_data['poll_id']
-#         user = User.objects.get(email=email)
-#         poll = Poll.objects.get(id=poll_id)
-#         if Voter.objects.filter(user=user, poll=poll).exists():
-#             raise serializers.ValidationError("A voter with the same user and poll already exists.")
-#         return Voter.objects.create(user=user, poll=poll)
-        
-# class UserEmailField(serializers.EmailField):
-#     def to_internal_value(self, data):
-#         print(data)
-#         user = User.objects.get(email=data)
-#         print(user)
-#         try:
-#             user = User.objects.filter(email=data).exists()
-#             if user:
-#                 return data
-#         except User.DoesNotExist:
-#             raise serializers.ValidationError('User with this email does not exist.')
-        
