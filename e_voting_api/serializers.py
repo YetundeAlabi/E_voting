@@ -56,16 +56,41 @@ class PollSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "description"]
 
 
+class UserDetailSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = get_user_model()
+        fields = ["id", "email", "full_name", "phone_number"]
+
+    def get_full_name(self, obj):
+        return obj.get_full_name()
+    
+
+class VoterLoginDetailSerializer(serializers.ModelSerializer):
+    user = UserDetailSerializer(read_only=True)
+
+    class Meta:
+        model = Voter
+        fields = ['id', 'user']
+        read_only_fields = ['id']
+
+
 class PollDetailSerializer(serializers.ModelSerializer):
     candidates = serializers.StringRelatedField(many=True, read_only=True, required=False)
     is_active = serializers.BooleanField()
+    voter = serializers.SerializerMethodField()
 
     class Meta:
         model = Poll
-        fields = ["id", "name", "description", "end_time", "start_time", "candidates", "is_active"]
+        fields = ["id", "name", "description", "end_time", "start_time", "candidates", "is_active", "voter"]
 
     def get_is_active(self, obj):
         return obj.is_active()
+    
+    def get_voter(self, obj):
+        voter = obj.voters.filter(user=self.context['request'].user).first()
+        return VoterLoginDetailSerializer(voter).data
 
     def update(self, instance, validated_data):
 
@@ -91,36 +116,14 @@ class PollDetailSerializer(serializers.ModelSerializer):
         return instance
     
 
-class UserDetailSerializer(serializers.ModelSerializer):
-    full_name = serializers.SerializerMethodField(read_only=True)
+class CandidateSerializer(serializers.ModelSerializer):
+    # votes = VoteSerializer(many=True, required=False)
+    name = serializers.CharField()
 
     class Meta:
-        model = get_user_model()
-        fields = ["id", "email", "full_name", "phone_number"]
+        model = Candidate
+        fields = ["name"]
 
-    def get_full_name(self, obj):
-        return obj.get_full_name()
-
-class VotersPollSerializer(serializers.ModelSerializer):
-    # polls = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Poll
-        fields = ["id"]
-
-    
-# class UserEmailField(serializers.EmailField):
-#     def to_internal_value(self, data):
-#         print(data)
-#         user = User.objects.get(email=data)
-#         print(user)
-#         try:
-#             user = User.objects.filter(email=data).exists()
-#             if user:
-#                 return data
-#         except User.DoesNotExist:
-#             raise serializers.ValidationError('User with this email does not exist.')
-        
 
 class VoterSerializer(serializers.ModelSerializer):
     user = UserDetailSerializer(read_only=True)
@@ -129,20 +132,6 @@ class VoterSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'poll']
         read_only_fields = ['id']
 
-
-# class AddVoterSerializer(serializers.Serializer):
-#     email = serializers.EmailField()
-#     poll_id = serializers.IntegerField()
-
-#     def create(self, validated_data):
-#         email = validated_data['email']
-#         poll_id = validated_data['poll_id']
-#         user = User.objects.get(email=email)
-#         poll = Poll.objects.get(id=poll_id)
-#         if Voter.objects.filter(user=user, poll=poll).exists():
-#             raise serializers.ValidationError("A voter with the same user and poll already exists.")
-#         return Voter.objects.create(user=user, poll=poll)
-        
 
 class VoterEmailSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -169,18 +158,25 @@ class VoterEmailSerializer(serializers.Serializer):
         
         return Voter.objects.create(user=user, poll=poll)
     
-# class VoterSerializer(serializers.ModelSerializer):
-   
-#     # user = UserDetailSerializer(read_only=True)
-#     user = UserEmailField()
-#     # poll = PollSerializer()
     
 
-#     class Meta:
-#         model = Voter
-#         # fields = ["id", "user", "poll"]
-#         fields = "__all__"
+class VoterDetailSerializer(serializers.ModelSerializer):
+    user = UserDetailSerializer(read_only=True)
+    poll = serializers.SerializerMethodField
+    # poll = PollSerializer(many=True, read_only=True) 
+    # poll = serializers.PrimaryKeyRelatedField(many=True, queryset=Poll.objects.all())
 
+    class Meta:
+        model = Voter
+        fields = ["id", "user", "poll"]
+
+    def get_poll(self, obj):
+        polls = obj.poll.filter(user=self.request.user).all()
+        return PollSerializer(polls, many=True).data
+
+    
+
+   
 #     def create(self, validated_data):
 #         print(validated_data)
 #         # Check if a voter with the same user_id and poll already exists
@@ -215,13 +211,6 @@ class VoterEmailSerializer(serializers.Serializer):
 #         fields = "__all__"
 
 
-class CandidateSerializer(serializers.ModelSerializer):
-    # votes = VoteSerializer(many=True, required=False)
-    name = serializers.CharField()
-
-    class Meta:
-        model = Candidate
-        fields = ["name"]
 
     # def create(self, validated_data):
     #     poll_id = self.context.get("poll_id")
@@ -230,12 +219,12 @@ class CandidateSerializer(serializers.ModelSerializer):
     #     return super().create(validated_data)
 
 
-class CandidateDetailSerializer(serializers.ModelSerializer):
-    poll = PollSerializer(many=True, read_only=True)
+# class CandidateDetailSerializer(serializers.ModelSerializer):
+#     poll = PollSerializer(many=True, read_only=True)
 
-    class Meta:
-        model = Candidate
-        fields = ["id", "name", "poll"]
+#     class Meta:
+#         model = Candidate
+#         fields = ["id", "name", "poll"]
 
 
 
@@ -245,3 +234,29 @@ class VoterImportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Voter
         fields = "__all__"
+
+# class AddVoterSerializer(serializers.Serializer):
+#     email = serializers.EmailField()
+#     poll_id = serializers.IntegerField()
+
+#     def create(self, validated_data):
+#         email = validated_data['email']
+#         poll_id = validated_data['poll_id']
+#         user = User.objects.get(email=email)
+#         poll = Poll.objects.get(id=poll_id)
+#         if Voter.objects.filter(user=user, poll=poll).exists():
+#             raise serializers.ValidationError("A voter with the same user and poll already exists.")
+#         return Voter.objects.create(user=user, poll=poll)
+        
+# class UserEmailField(serializers.EmailField):
+#     def to_internal_value(self, data):
+#         print(data)
+#         user = User.objects.get(email=data)
+#         print(user)
+#         try:
+#             user = User.objects.filter(email=data).exists()
+#             if user:
+#                 return data
+#         except User.DoesNotExist:
+#             raise serializers.ValidationError('User with this email does not exist.')
+        

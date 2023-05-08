@@ -35,7 +35,7 @@ class Poll(models.Model):
     @property
     def is_active(self):
         """ check if poll is active at current time """
-        if self.start_time >= datetime.datetime.now().time() <= self.end_time:
+        if self.start_time <= datetime.datetime.now().time() <= self.end_time:
             return True  
         return False
 

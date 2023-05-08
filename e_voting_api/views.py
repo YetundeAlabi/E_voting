@@ -113,7 +113,7 @@ class PollListView(generics.ListCreateAPIView):
 
 
 class PollDetailView(generics.RetrieveUpdateAPIView):
-    queryset = Poll.pollobjects.all() #only get active polls
+    queryset = Poll.objects.all() #only get active polls
     serializer_class = serializers.PollDetailSerializer
     permission_classes = [IsAdminOrReadOnly, IsAuthenticated]
 
@@ -156,44 +156,28 @@ class CandidateCreateView(generics.ListCreateAPIView):
         response = super().post(request, *args, **kwargs)
         return Response(response.data, status=201)
 
-
-
     
-# class VoterRegistrationView(generics.ListCreateAPIView):
-#     serializer_class = serializers.VoterSerializer
-#     permission_classes = [IsAdminUser]
-#     queryset = Voter.objects.all()
 
-#     # def get_queryset(self):
-#     #     return Voter.objects.filter(poll_id = self.kwargs["pk"])
-    
-#     # def post(self, request, *args, **kwargs):
-#     #     serializer = serializers.VoterEmailSerializer(data=request.data)
-#     #     serializer.is_valid(raise_exception=True)
-#     #     voter = serializer.save()
-#     #     user = User.objects.get(email=voter)
-#     #     # get the poll by id
-#     #     poll_id = self.kwargs["pk"]
-#     #     poll = Poll.objects.get(poll_id)
-        
-#     #     # check if voter already exists for this poll
-#     #     if Voter.objects.filter(user=user, poll=poll).exists():
-#     #         return Response({'error': 'Voter with the same user and poll id already exists.'}, 
-#     #                         status=status.HTTP_400_BAD_REQUEST)
-        
-#     #     voter = Voter(user=user, poll=poll)
-#     #     voter.save()
-#     #     voter_serializer = serializers.VoterSerializer(voter)
-#     #     return Response(voter_serializer.data)
 class VoterListView(generics.ListAPIView):
     serializer_class = serializers.VoterSerializer
     queryset = Voter.objects.all()
     # permission_classes = [I]
 
+
+class VoterPollListView(generics.ListAPIView):
+    serializer_class = serializers.VoterDetailSerializer
+    queryset = Voter.objects.all()
+
+    def get_queryset(self):
+        return Voter.objects.filter(user=self.request.user).all()
+
+    # def get_object(self):
+    #     obj = self.polls.filter(user=)
+
+
 class ListPollVoterView(generics.ListAPIView):
     serializer_class = serializers.VoterSerializer
     permission_classes = [IsAuthenticated]
-
 
     def get_queryset(self):
         return Voter.objects.filter(poll_id = self.kwargs["pk"])
@@ -252,6 +236,33 @@ class VoterDestroyView(generics.DestroyAPIView):
 #         voter_serializer = serializers.VoterSerializer(voter)
 #         return Response(voter_serializer.data)
 
+
+# class VoterRegistrationView(generics.ListCreateAPIView):
+#     serializer_class = serializers.VoterSerializer
+#     permission_classes = [IsAdminUser]
+#     queryset = Voter.objects.all()
+
+#     # def get_queryset(self):
+#     #     return Voter.objects.filter(poll_id = self.kwargs["pk"])
+    
+#     # def post(self, request, *args, **kwargs):
+#     #     serializer = serializers.VoterEmailSerializer(data=request.data)
+#     #     serializer.is_valid(raise_exception=True)
+#     #     voter = serializer.save()
+#     #     user = User.objects.get(email=voter)
+#     #     # get the poll by id
+#     #     poll_id = self.kwargs["pk"]
+#     #     poll = Poll.objects.get(poll_id)
+        
+#     #     # check if voter already exists for this poll
+#     #     if Voter.objects.filter(user=user, poll=poll).exists():
+#     #         return Response({'error': 'Voter with the same user and poll id already exists.'}, 
+#     #                         status=status.HTTP_400_BAD_REQUEST)
+        
+#     #     voter = Voter(user=user, poll=poll)
+#     #     voter.save()
+#     #     voter_serializer = serializers.VoterSerializer(voter)
+#     #     return Response(voter_serializer.data)
 
 # class AddVoterView(generics.)
 

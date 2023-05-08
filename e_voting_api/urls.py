@@ -6,13 +6,14 @@ urlpatterns = [
     path('email-verify/', views.VerifyEmail.as_view(), name="email-verify"),
     path("auth/login/", views.UserLoginAPIView.as_view(), name="login"),
     path('polls/', views.PollListView.as_view(), name="poll"),
-    path('polls/<int:pk>/candidate', views.CandidateCreateView.as_view(), name="craete-candidate"),
+    path('polls/<int:pk>/candidate', views.CandidateCreateView.as_view(), name="create-candidate"),
     path('polls/<int:pk>/', views.PollDetailView.as_view(), name="poll_detail"), 
     path('polls/<int:pk>/delete', views.PollDestroyView.as_view(), name="poll_detail"),
     path('polls/<int:pk>/voters/', views.ListPollVoterView.as_view(), name="poll_voters"),
     path('polls/<int:pk>/voter/', views.AddVoterToPollView.as_view(), name="add_poll_voters"),
     path('polls/<int:pk>/voters/<int:voter_pk>/', views.VoterDestroyView.as_view(), name="remove_voter"),
-    path("voters/", views.VoterListView.as_view(), name="voterlist")
+    path("voters/", views.VoterListView.as_view(), name="voterlist"),
+    path("voters/<int:pk>/", views.VoterPollListView.as_view(), name="voters-polls")
    
     # path("", views.TestView.as_view())
 
