@@ -106,13 +106,19 @@ class UserLoginAPIView(GenericAPIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
-class PollListView(generics.ListCreateAPIView):
+class PollListCreateView(generics.ListCreateAPIView):
     serializer_class = serializers.PollSerializer
     permission_classes = [IsAdminOrReadOnly, IsAuthenticated]
 
     def get_queryset(self):
         return Poll.pollobjects.all() #only get active polls
 
+class PollListView(generics.ListAPIView):
+    serializer_class = serializers.PollSerializer
+    permission_classes = []
+
+    def get_queryset(self):
+        return Poll.objects.all()
 
 class PollDetailView(generics.RetrieveUpdateAPIView):
     """ Endpoint that show details about active poll with user detail"""
@@ -311,7 +317,7 @@ class CreateVoteView(generics.CreateAPIView):
 
 
 class PollWinnersView(generics.ListAPIView):
-    queryset = Poll.objects.filter(votes__isnull=False).distinct()
+    queryset = Poll.objects.filter(poll_votes__isnull=False).distinct()
     serializer_class = serializers.PollWinnerSerializer
 
     def get(self, request, *args, **kwargs):

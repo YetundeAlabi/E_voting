@@ -34,7 +34,7 @@ urlpatterns = [
     # path('email-verify/', views.VerifyEmail.as_view(), name="email-verify"),
     # path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/', include('e_voting_api.urls')),
-    # path('verification/', include('verify_email.urls')),
+    path('frontend/', include('frontend.urls')),
     path("", views.TestView.as_view())
 
 ]
