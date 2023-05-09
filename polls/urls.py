@@ -17,24 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from api import views
-# from rest_framework_simplejwt.views import (
-#     TokenObtainPairView,
-#     TokenRefreshView,
-# )
-
-# urlpatterns = [
-#     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-#     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-# ]
-
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("signup", views.UserSignUpView.as_view(), name="create"),
-    # path('email-verify/', views.VerifyEmail.as_view(), name="email-verify"),
-    # path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/', include('e_voting_api.urls')),
+    path("accounts/", include('accounts.urls')),
+    path('api/', include('api.urls')),
     path('frontend/', include('frontend.urls')),
-    path("", views.TestView.as_view())
+    path("", views.TestView.as_view()),
 
 ]

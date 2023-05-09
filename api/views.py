@@ -1,110 +1,19 @@
 import csv
-import logging
-from logging import Logger, LoggerAdapter
-from django.shortcuts import get_object_or_404
-import jwt
-from datetime import datetime
 
-from django.contrib.sites.shortcuts import get_current_site
-from django.urls import reverse
-from django.conf import settings
-from django.utils import timezone
 from django.db import transaction
 
 from rest_framework import generics
-from rest_framework.generics import GenericAPIView, CreateAPIView
 from rest_framework.views import APIView
 from rest_framework import status, serializers
-from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 
-from . import serializers
-from .serializers import (
-    UserSerializer, 
-    PollSerializer, 
-    CandidateSerializer, 
-    UserLoginSerializer, 
-    EmailVerificationSerializer 
-)
+from api import serializers
 from accounts.models import User
 from .utils import Util
 from api.models import Candidate, Poll, Vote, Voter
 from api.permissions import IsAdminOrReadOnly
-
-logger = logging.getLogger(__name__)
-
-class UserSignUpView(CreateAPIView):
-    """Create a new user in the system"""
-    permission_classes = (AllowAny,)
-    authentication_classes = []
-    serializer_class = UserSerializer
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            user =serializer.save()
-            user_data = serializer.data
-
-            token = RefreshToken.for_user(user)
-            refresh = {
-                'refresh': str(token),
-                'access': str(token.access_token),
-            }
-            current_site = get_current_site(request).domain
-            relative_link = reverse("email-verify")
-
-            absurl = f'http://{current_site}{relative_link}?token={refresh["access"]}'
-            print(absurl)
-            email_body = f'Hi {user.first_name} Use the link below to verify your email \n{absurl}'
-            data = {"email_body": email_body, "to_email": user.email, "email_subject": "Verify your email"}
-            Util.send_email(data)
-            
-            return Response(user_data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-
-class VerifyEmail(GenericAPIView):
-    """ An endpoint to verify if user email is authentic before login"""
-    permission_classes = (AllowAny,)
-    authentication_classes = ()
-    serializer_class = EmailVerificationSerializer
-
-    def get(self, request):
-        token = request.GET.get('token')
-        try:
-            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-            user = User.objects.get(id = payload['user_id'])  
-            if not user.is_verified:  
-                user.is_verified = True
-                user.save()
-            return Response({"email": 'Successfully activated'}, status=status.HTTP_200_OK)
-        except jwt.ExpiredSigntureError as identifier:
-            return Response({"error": 'Activation Expired'}, status=status.HTTP_400_BAD_REQUEST)
-        except jwt.exceptions.DecodeError as identifier:
-            return Response({"error": 'Invalid Token'}, status=status.HTTP_400_BAD_REQUEST)
-        
-
-class UserLoginAPIView(GenericAPIView):
-    """
-    An endpoint to authenticate existing users using their email and password.
-    """
-
-    permission_classes = (AllowAny,)
-    authentication_classes = ()
-    serializer_class = UserLoginSerializer
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data
-        serializer = UserSerializer(user)
-        token = RefreshToken.for_user(user)
-        data = serializer.data
-        data["tokens"] = {"refresh": str(token), "access": str(token.access_token)}
-        
-        return Response(data, status=status.HTTP_200_OK)
 
 
 class PollListCreateView(generics.ListCreateAPIView):
@@ -114,12 +23,14 @@ class PollListCreateView(generics.ListCreateAPIView):
     def get_queryset(self):
         return Poll.pollobjects.all() #only get active polls
 
+
 class PollListView(generics.ListAPIView):
     serializer_class = serializers.PollSerializer
     permission_classes = []
 
     def get_queryset(self):
         return Poll.objects.all()
+
 
 class PollDetailView(generics.RetrieveUpdateAPIView):
     """ Endpoint that show details about active poll with user detail"""
@@ -142,7 +53,6 @@ class PollDestroyView(generics.DestroyAPIView):
     serializer_class = serializers.PollDetailSerializer
     permission_classes = [IsAdminUser]
 
-
     def perform_destroy(self, instance):
         instance.is_deleted = True
         instance.save()
@@ -153,11 +63,11 @@ class PollDestroyView(generics.DestroyAPIView):
         return Response({"message":"poll successfully deleted"}, status=status.HTTP_204_NO_CONTENT)
   
 
-class CandidateCreateView(generics.ListCreateAPIView):
+class CandidateListCreateView(generics.ListCreateAPIView):
     """endpoint to get and create candidate for a poll"""
 
     queryset = Candidate.objects.all()
-    serializer_class = CandidateSerializer
+    serializer_class = serializers.CandidateSerializer
     permission_classes = [IsAdminUser]
 
     def perform_create(self, serializer):
@@ -172,12 +82,14 @@ class CandidateCreateView(generics.ListCreateAPIView):
     
 
 class VoterListView(generics.ListAPIView):
+    """ list of all registered voters """
     serializer_class = serializers.VoterSerializer
     queryset = Voter.objects.all()
     # permission_classes = [I]
 
 
 class VoterPollListView(generics.ListAPIView):
+    """ list all poll registered for by a voter """
     serializer_class = serializers.VoterDetailSerializer
     queryset = Voter.objects.all()
 
@@ -186,6 +98,7 @@ class VoterPollListView(generics.ListAPIView):
 
 
 class ListPollVoterView(generics.ListAPIView):
+    """ list all voters in a poll """
     serializer_class = serializers.VoterSerializer
     permission_classes = [IsAuthenticated]
 
@@ -194,7 +107,7 @@ class ListPollVoterView(generics.ListAPIView):
 
 
 class AddVoterToPollView(generics.CreateAPIView):
-    "add voters to poll through an admin"
+    """add voters to poll through an admin"""
     serializer_class = serializers.VoterEmailSerializer
     permission_classes = [IsAdminUser]
     
@@ -212,6 +125,7 @@ class AddVoterToPollView(generics.CreateAPIView):
 
 
 class VoterDestroyView(generics.DestroyAPIView):
+    """ delete voter """
     queryset = Poll.objects.all()
     serializer_class = serializers.VoterSerializer
     permission_classes = [IsAdminUser]
@@ -219,7 +133,6 @@ class VoterDestroyView(generics.DestroyAPIView):
     def get_queryset(self):
         return Poll.objects.filter(voters__id = self.kwargs["voter_pk"])
         
-
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         if not instance.is_active:
@@ -229,6 +142,7 @@ class VoterDestroyView(generics.DestroyAPIView):
 
 
 class VoterImportView(APIView):
+    """ import voters using a csv"""
     parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request, *args, **kwargs):
@@ -293,7 +207,7 @@ class CreateVoteView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         poll_id = self.kwargs["pk"]
         candidate_id = self.kwargs["candidate_pk"]
-        # user= request.user
+    
         try:
             """ get only active polls. Can't vote before start time"""
             poll = Poll.pollobjects.get(id=poll_id)
@@ -316,7 +230,6 @@ class CreateVoteView(generics.CreateAPIView):
             return Response({'error': 'This user is not registered to vote in this poll.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class PollWinnersView(generics.ListAPIView):
     queryset = Poll.objects.filter(poll_votes__isnull=False).distinct()
     serializer_class = serializers.PollWinnerSerializer
@@ -332,27 +245,7 @@ class PollWinnersView(generics.ListAPIView):
 
 
 class TestView(generics.ListAPIView):
-    serializer_class = UserSerializer
+    serializer_class = serializers.UserSerializer
     queryset = User.objects.all()
     permission_classes = []
 
-
-
-
-# class CandidateListView(generics.ListCreateAPIView):
-#     serializer_class =  CandidateSerializer
-#     permission_classes = [IsAdminUser, IsAuthenticated]
-    
-
-#     def get_queryset(self):
-#         """filter candidates using poll id"""
-#         queryset = Candidate.objects.filter(poll_id = self.kwargs.get("pk"))
-#         return queryset
-    
-#     def get_serializer_context(self):
-#         poll_id = self.kwargs.get('poll_id')
-#         return {'poll_id': poll_id}
-    
-
-
-# 
