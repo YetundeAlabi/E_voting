@@ -1,10 +1,4 @@
-<!-- /*
-* Template Name: Learner
-* Template Author: Untree.co
-* Tempalte URI: https://untree.co/
-* License: https://creativecommons.org/licenses/by/3.0/
-*/ -->
-{% load static %}
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -20,7 +14,7 @@
 
 
   <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
-
+  {% load static %}
   <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/animate.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/owl.carousel.min.css' %}">
@@ -35,7 +29,7 @@
 </head>
 
 <body>
-
+    {% block body %}
   <div class="site-mobile-menu">
     <div class="site-mobile-menu-header">
       <div class="site-mobile-menu-close">
@@ -75,10 +69,10 @@
     <div class="sticky-nav js-sticky-header">
       <div class="container position-relative">
         <div class="site-navigation text-center">
-          <a href="index.html" class="logo menu-absolute m-0">Learner<span class="text-primary">.</span></a>
+          <a href="{% url 'frontend:index' %}" class="logo menu-absolute m-0">Learner<span class="text-primary">.</span></a>
 
           <ul class="js-clone-nav d-none d-lg-inline-block site-menu">
-            <li class="active"><a href="index.html">Home</a></li>
+            <li class="active"><a href="{% url 'frontend:index' %}">Home</a></li>
             <li class="has-children">
               <a href="#">Dropdown</a>
               <ul class="dropdown">
@@ -141,78 +135,12 @@
 
   </div> <!-- /.untree_co-hero -->
 
+{% endblock %}
 
-  
-  
-  <div class="untree_co-section">
-    <div class="container">
-      <div class="row justify-content-center mb-3">
-        <div class="col-lg-7 text-center" data-aos="fade-up" data-aos-delay="0">
-          <h2 class="line-bottom text-center mb-4">Voting Polls</h2>
-        </div>
-      </div>
-      <div class="row align-items-stretch" id="polls-container">
-        <!--Polls will be dynamically added here using Ajax-->
-      </div>
-    </div>
-  </div>
-  <script>
-    {% comment %} an AJAX request to the backend API to fetch polls data {% endcomment %}
-    const pollsContainer = document.querySelector('#polls-container');
+<div>{% block content %}{% endblock %}</div>
 
-    // Get the token from local storage
-    {% comment %} const token = localStorage.getItem('token'); {% endcomment %}
-
-    var url = 'http://127.0.0.1:8000/api/polls/'
-    fetch(url
-    {% comment %} , {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    } {% endcomment %}
-    )
-      .then(response => response.json())
-      .then(data => {
-        console.log(data);
-        // Loop through the list of polls and add them to the polls container
-        
-        data.forEach((poll, index) => {
-          const pollHTML = `
-            <div class="col-sm-6 col-md-6 col-lg-3 mb-4" data-aos="fade-up" data-aos-delay="${index * 100}">
-              <a href="#" class="category d-flex align-items-start h-100">
-                <div>
-                  <i class="uil uil-atom"></i>
-                </div>
-                <div>
-                  <h3>${poll.name}</h3>
-                  <span>${poll.description}</span>
-                </div>
-              </a>
-            </div>
-          `;
-          pollsContainer.insertAdjacentHTML('beforeend', pollHTML);
-        });
-      })
-      .catch(error => console.error(error));
-  </script>
-
-
-      
-    
-  
-
-  
-
-
-
-
- 
-    
-
-           
-
-
-  <div class="site-footer">
+{% block footer%}
+<div class="site-footer">
 
     <div class="container">
 
@@ -278,5 +206,4 @@
     <script src="{% static 'js/custom.js' %}"></script>
 
   </body>
-
-  </html>
+{% endblock %}
