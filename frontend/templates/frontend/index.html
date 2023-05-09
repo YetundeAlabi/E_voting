@@ -142,144 +142,44 @@
   </div> <!-- /.untree_co-hero -->
 
 
+  
+  
   <div class="untree_co-section">
     <div class="container">
       <div class="row justify-content-center mb-3">
         <div class="col-lg-7 text-center" data-aos="fade-up" data-aos-delay="0">
-          <h2 class="line-bottom text-center mb-4">Browse Top Category</h2>
+          <h2 class="line-bottom text-center mb-4">Voting Polls</h2>
         </div>
       </div>
-      <div class="row align-items-stretch">
-        <div class="col-sm-6 col-md-6 col-lg-3 mb-4" data-aos="fade-up" data-aos-delay="0">
-          <a href="#" class="category d-flex align-items-start h-100">
-            <div>
-              <i class="uil uil-atom"></i>
-            </div>
-            <div>
-              <h3>Science</h3>
-              <span>1,391 courses</span>
-            </div>
-          </a>
-        </div>
-        <div class="col-sm-6 col-md-6 col-lg-3 mb-4" data-aos="fade-up" data-aos-delay="100">
-          <a href="#" class="category d-flex align-items-start h-100">
-            <div>
-              <i class="uil uil-briefcase"></i>
-            </div>
-            <div>
-              <h3>Business</h3>
-              <span>3,234 courses</span>
-            </div>
-          </a>
-        </div>
-        <div class="col-sm-6 col-md-6 col-lg-3 mb-4" data-aos="fade-up" data-aos-delay="200">
-          <a href="#" class="category d-flex align-items-start h-100">
-            <div>
-              <i class="uil uil-calculator"></i>
-            </div>
-            <div>
-              <h3>Finance Accounting</h3>
-              <span>931 courses</span>
-            </div>
-          </a>
-        </div>
-        <div class="col-sm-6 col-md-6 col-lg-3 mb-4" data-aos="fade-up" data-aos-delay="300">
-          <a href="#" class="category d-flex align-items-start h-100">
-            <div>
-              <i class="uil uil-pen"></i>
-            </div>
-            <div>
-              <h3>Design</h3>
-              <span>7,291 courses</span>
-            </div>
-          </a>
-        </div>
-
-
-        <div class="col-sm-6 col-md-6 col-lg-3 mb-4" data-aos="fade-up" data-aos-delay="0">
-          <a href="#" class="category d-flex align-items-start h-100">
-            <div>
-              <i class="uil uil-music"></i>
-            </div>
-            <div>
-              <h3>Music</h3>
-              <span>9,114 courses</span>
-            </div>
-          </a>
-        </div>
-        <div class="col-sm-6 col-md-6 col-lg-3 mb-4" data-aos="fade-up" data-aos-delay="100">
-          <a href="#" class="category d-flex align-items-start h-100">
-            <div>
-              <i class="uil uil-chart-pie"></i>
-            </div>
-            <div>
-              <h3>Marketing</h3>
-              <span>2,391 courses</span>
-            </div>
-          </a>
-        </div>
-        <div class="col-sm-6 col-md-6 col-lg-3 mb-4" data-aos="fade-up" data-aos-delay="200">
-          <a href="#" class="category d-flex align-items-start h-100">
-            <div>
-              <i class="uil uil-camera"></i>
-            </div>
-            <div>
-              <h3>Photography</h3>
-              <span>7,991 courses</span>
-            </div>
-          </a>
-        </div>
-        <div class="col-sm-6 col-md-6 col-lg-3 mb-4" data-aos="fade-up" data-aos-delay="300">
-          <a href="#" class="category d-flex align-items-start h-100">
-            <div>
-              <i class="uil uil-circle-layer"></i>
-            </div>
-            <div>
-              <h3>Animation</h3>
-              <span>6,491 courses</span>
-            </div>
-          </a>
-        </div>
-        
-
-      </div>
-
-      <div class="row justify-content-center" data-aos="fade-up" data-aos-delay="400">
-        <div class="col-lg-8 text-center">
-        </div>
+      <div class="row align-items-stretch" id="polls-container">
+        <!--Polls will be dynamically added here using Ajax-->
       </div>
     </div>
   </div>
-
-
-
-
-  
-    <div class="untree_co-section">
-      <div class="container">
-        <div class="row justify-content-center mb-3">
-          <div class="col-lg-7 text-center" data-aos="fade-up" data-aos-delay="0">
-            <h2 class="line-bottom text-center mb-4">Browse Top Polls</h2>
-          </div>
-        </div>
-        <div class="row align-items-stretch" id="polls-container">
-          <!--Polls will be dynamically added here using Ajax-->
-        </div>
-      </div>
-  </div>
   <script>
-    // Make an AJAX request to the backend API to fetch polls data
-    var url = 'http://127.0.0.1:8000/polls/'
-    fetch(url)
+    {% comment %} an AJAX request to the backend API to fetch polls data {% endcomment %}
+    const pollsContainer = document.querySelector('#polls-container');
+
+    // Get the token from local storage
+    {% comment %} const token = localStorage.getItem('token'); {% endcomment %}
+
+    var url = 'http://127.0.0.1:8000/api/polls/'
+    fetch(url
+    {% comment %} , {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    } {% endcomment %}
+    )
       .then(response => response.json())
       .then(data => {
         console.log(data);
         // Loop through the list of polls and add them to the polls container
-        const pollsContainer = document.querySelector('#polls-container');
-        data.forEach(poll => {
+        
+        data.forEach((poll, index) => {
           const pollHTML = `
-            <div class="col-sm-6 col-md-6 col-lg-3 mb-4" data-aos="fade-up" data-aos-delay="0">
-              <div class="category d-flex align-items-start h-100">
+            <div class="col-sm-6 col-md-6 col-lg-3 mb-4" data-aos="fade-up" data-aos-delay="${index * 100}">
+              <a href="#" class="category d-flex align-items-start h-100">
                 <div>
                   <i class="uil uil-atom"></i>
                 </div>
@@ -287,7 +187,7 @@
                   <h3>${poll.name}</h3>
                   <span>${poll.description}</span>
                 </div>
-              </div>
+              </a>
             </div>
           `;
           pollsContainer.insertAdjacentHTML('beforeend', pollHTML);
@@ -295,39 +195,8 @@
       })
       .catch(error => console.error(error));
   </script>
-Note: The uil-poll icon is just a placeholder and can be replaced with any other icon that represents a poll.
-  
 
-</div>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-  $(document).ready(function() {
-    $.ajax({
-      url: "http://127.0.0.1:8000/polls/",
-      dataType: "json",
-      success: function(data) {
-        var categories = data.results;
-        var categoryList = $(".category-list");
 
-        $.each(categories, function(index, category) {
-          var categoryTemplate = `
-            <div class="col-sm-6 col-md-6 col-lg-3 mb-4" data-aos="fade-up" data-aos-delay="${index * 100}">
-              <a href="#" class="category d-flex align-items-start h-100">
-                <div>
-                  <i class="uil ${category.icon}"></i>
-                </div>
-                <div>
-                  <h3>${category.name}</h3>
-                  <span>${category.num_courses} courses</span>
-                </div>
-              </a>
-            </div>
-          `;
-          categoryList.append(categoryTemplate);
-        });
-      }
-    }
-  
       
     
   
@@ -367,38 +236,6 @@ Note: The uil-poll icon is just a placeholder and can be replaced with any other
           </div> <!-- /.widget -->
         </div> <!-- /.col-lg-3 -->
 
-        <div class="col-lg-2 ml-auto">
-          <div class="widget">
-            <h3>Projects</h3>
-            <ul class="list-unstyled float-left links">
-              <li><a href="#">Web Design</a></li>
-              <li><a href="#">HTML5</a></li>
-              <li><a href="#">CSS3</a></li>
-              <li><a href="#">jQuery</a></li>
-              <li><a href="#">Bootstrap</a></li>
-            </ul>
-          </div> <!-- /.widget -->
-        </div> <!-- /.col-lg-3 -->
-
-        <div class="col-lg-3">
-          <div class="widget">
-            <h3>Gallery</h3>
-            <ul class="instafeed instagram-gallery list-unstyled">
-              <li><a class="instagram-item" href="{% static 'images/gal_1.jpg" data-fancybox="gal"><img src="{% static 'images/gal_1.jpg" alt="" width="72" height="72"></a>
-              </li>
-              <li><a class="instagram-item" href="{% static 'images/gal_2.jpg" data-fancybox="gal"><img src="{% static 'images/gal_2.jpg" alt="" width="72" height="72"></a>
-              </li>
-              <li><a class="instagram-item" href="{% static 'images/gal_3.jpg" data-fancybox="gal"><img src="{% static 'images/gal_3.jpg" alt="" width="72" height="72"></a>
-              </li>
-              <li><a class="instagram-item" href="{% static 'images/gal_4.jpg" data-fancybox="gal"><img src="{% static 'images/gal_4.jpg" alt="" width="72" height="72"></a>
-              </li>
-              <li><a class="instagram-item" href="{% static 'images/gal_5.jpg" data-fancybox="gal"><img src="{% static 'images/gal_5.jpg" alt="" width="72" height="72"></a>
-              </li>
-              <li><a class="instagram-item" href="{% static 'images/gal_6.jpg" data-fancybox="gal"><img src="{% static 'images/gal_6.jpg" alt="" width="72" height="72"></a>
-              </li>
-            </ul>
-          </div> <!-- /.widget -->
-        </div> <!-- /.col-lg-3 -->
 
 
         <div class="col-lg-3">
