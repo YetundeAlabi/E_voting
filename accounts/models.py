@@ -51,7 +51,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.is_staff
 
     # def __str__(self):
-    #     self.username
+    #     self.get_full_name()
 
     def get_full_name(self):
         return f'{self.first_name} {self.last_name}'

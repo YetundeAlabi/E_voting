@@ -8,22 +8,25 @@
 
       <div class="row mb-5 justify-content-center">
         <div class="col-lg-5 mx-auto order-1" data-aos="fade-up" data-aos-delay="200">
-          <form action="#" class="form-box" id="signup-form">
+          <form action="{% url 'frontend:index'%}" class="form-box" id="signup-form">
             <div class="row">
               <div class="col-12 mb-3">
-                <input type="text" class="form-control" placeholder="First name", id="last-name">
+                <input type="text" class="form-control" placeholder="" id="">
               </div>
               <div class="col-12 mb-3">
-                <input type="text" class="form-control" placeholder="Last name", id="first-name">
+                <input type="text" class="form-control" placeholder="first name" id="first-name">
               </div>
               <div class="col-12 mb-3">
-                <input type="email" class="form-control" placeholder="Email", id="email-input">
+                <input type="text" class="form-control" placeholder="Last name" id="last-name">
               </div>
               <div class="col-12 mb-3">
-                <input type="password" class="form-control" placeholder="Password", id="password">
+                <input type="email" class="form-control" placeholder="Email" id="email-input">
               </div>
               <div class="col-12 mb-3">
-                <input type="tel" class="form-control" placeholder="phone number", id="phone-number">
+                <input type="password" class="form-control" placeholder="Password" id="password">
+              </div>
+              <div class="col-12 mb-3">
+                <input type="tel" class="form-control" placeholder="phone number" id="phone-number">
               </div>
 
               <div class="col-12 mb-3">
@@ -35,45 +38,73 @@
               </div>
 
               <div class="col-12">
-                <input type="submit" value="Send Message" class="btn btn-primary" id=signup-btn>
+                <input type="submit" value="Register" class="btn btn-primary" id="signup-btn">
               </div>
             </div>
           </form>
 
         </div>
       </div>
-      <script>
+    <script>
+      console.log('got here');
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                  const cookie = cookies[i].trim();
+                  // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                      cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                      break;
+                    } 
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        console.log("hereeeee")
         const signupForm = document.getElementById('signup-form');
         const signupBtn = document.getElementById('signup-btn');
         const emailInput = document.getElementById('email-input');
-        const passwordInput = document.getElementById('password-input');
-        const firstnameInput = document.getElementById('first-name');
-        const lastnameInput = document.getElementById('last-name');
+        const passwordInput = document.getElementById('password');
+        const firstName = document.getElementById('first-name')
+        const lastName = document.getElementById('last-name')
         const phonenumberInput = document.getElementById('phone-number');
         
-        
-        signupForm.addEventListener('submit', (event)) => {
+        console.log("First name:", firstName); // Output: "John"
+        console.log("Last name:", lastName); // Output: "Doe"
+        signupForm.addEventListener('submit', (event) => {
           event.preventDefault(); // prevent the form from submitting on it own
           console.log('form submitted') 
-            var url = 'http://127.0.0.1:8000/api/signup'
-      
+            var url = 'http://127.0.0.1:8000/api/signup/'
+            console.log(JSON.stringify({
+              email: emailInput.value,
+              password: passwordInput.value,
+              first_name: firstName.value,
+              last_name: lastName.value,
+              phone_number: phonenumberInput.value
+            }))
           fetch(url, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              'X-CSRFToken' : csrftoken
             },
             body: JSON.stringify({
               email: emailInput.value,
               password: passwordInput.value,
-              first_name: firstnameInput.value,
-              last_name: lastnameInput,
-              phone_number: phonenumberInput
+              first_name: firstName.value,
+              last_name: lastName.value,
+              phone_number: phonenumberInput.value
             })
           }).then(response => response.json())
             .then(data => console.log(data))
             .catch(error => console.error(error))
-        }
-      </script>
+        });
+    </script>
       
     </div>
   </div> 

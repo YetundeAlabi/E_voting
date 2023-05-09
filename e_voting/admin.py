@@ -13,7 +13,7 @@ class UserAdmin(BaseUserAdmin):
         (None, {"fields": ["email", "password"]}),
         ("Personal info", {"fields": ["first_name", "last_name", "phone_number"]}),
         ("Permissions", {"fields": ["is_active", "is_staff", "is_verified"]}),
-        (None, {"fields": ["voted", "is_deleted"]}),
+        (None, {"fields": ["is_deleted"]}),
         ("Dates", {"fields": ["last_login",]})
     ]
     

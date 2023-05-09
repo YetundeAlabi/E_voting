@@ -75,8 +75,8 @@ class Voter(models.Model):
     poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name="voters")
     is_voted = models.BooleanField(default=False)
 
-    def __str__(self):
-        self.user.email
+    # def __str__(self):
+    #     self.user.email
 
     def get_full_name(self):
         self.user.get_full_name()

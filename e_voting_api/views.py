@@ -56,6 +56,7 @@ class UserSignUpView(CreateAPIView):
             relative_link = reverse("email-verify")
 
             absurl = f'http://{current_site}{relative_link}?token={refresh["access"]}'
+            print(absurl)
             email_body = f'Hi {user.first_name} Use the link below to verify your email \n{absurl}'
             data = {"email_body": email_body, "to_email": user.email, "email_subject": "Verify your email"}
             Util.send_email(data)
