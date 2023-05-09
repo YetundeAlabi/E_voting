@@ -8,22 +8,22 @@
 
       <div class="row mb-5 justify-content-center">
         <div class="col-lg-5 mx-auto order-1" data-aos="fade-up" data-aos-delay="200">
-          <form action="#" class="form-box">
+          <form action="#" class="form-box" id="signup-form">
             <div class="row">
               <div class="col-12 mb-3">
-                <input type="text" class="form-control" placeholder="First name">
+                <input type="text" class="form-control" placeholder="First name", id="last-name">
               </div>
               <div class="col-12 mb-3">
-                <input type="text" class="form-control" placeholder="Last name">
+                <input type="text" class="form-control" placeholder="Last name", id="first-name">
               </div>
               <div class="col-12 mb-3">
-                <input type="email" class="form-control" placeholder="Email">
+                <input type="email" class="form-control" placeholder="Email", id="email-input">
               </div>
               <div class="col-12 mb-3">
-                <input type="password" class="form-control" placeholder="Password">
+                <input type="password" class="form-control" placeholder="Password", id="password">
               </div>
               <div class="col-12 mb-3">
-                <input type="tel" class="form-control" placeholder="phone number">
+                <input type="tel" class="form-control" placeholder="phone number", id="phone-number">
               </div>
 
               <div class="col-12 mb-3">
@@ -35,15 +35,51 @@
               </div>
 
               <div class="col-12">
-                <input type="submit" value="Send Message" class="btn btn-primary">
+                <input type="submit" value="Send Message" class="btn btn-primary" id=signup-btn>
               </div>
             </div>
           </form>
+
         </div>
       </div>
-
+      <script>
+        const signupForm = document.getElementById('signup-form');
+        const signupBtn = document.getElementById('signup-btn');
+        const emailInput = document.getElementById('email-input');
+        const passwordInput = document.getElementById('password-input');
+        const firstnameInput = document.getElementById('first-name');
+        const lastnameInput = document.getElementById('last-name');
+        const phonenumberInput = document.getElementById('phone-number');
+        
+        
+        signupForm.addEventListener('submit', (event)) => {
+          event.preventDefault(); // prevent the form from submitting on it own
+          console.log('form submitted') 
+            var url = 'http://127.0.0.1:8000/api/signup'
+      
+          fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email: emailInput.value,
+              password: passwordInput.value,
+              first_name: firstnameInput.value,
+              last_name: lastnameInput,
+              phone_number: phonenumberInput
+            })
+          }).then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error(error))
+        }
+      </script>
       
     </div>
-  </div> <!-- /.untree_co-section -->
+  </div> 
+  
+</div>
+</div>
+N<!-- /.untree_co-section -->
   {%endblock%}
 
