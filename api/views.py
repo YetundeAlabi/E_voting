@@ -30,8 +30,8 @@ from .serializers import (
 )
 from accounts.models import User
 from .utils import Util
-from e_voting.models import Candidate, Poll, Vote, Voter
-from e_voting_api.permissions import IsAdminOrReadOnly
+from api.models import Candidate, Poll, Vote, Voter
+from api.permissions import IsAdminOrReadOnly
 
 logger = logging.getLogger(__name__)
 

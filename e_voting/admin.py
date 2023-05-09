@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from accounts.models import User
-from e_voting.models import Poll, Candidate, Vote, Voter
+from api.models import Poll, Candidate, Vote, Voter
 # Register your models here.
 
 class UserAdmin(BaseUserAdmin):

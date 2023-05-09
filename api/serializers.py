@@ -7,7 +7,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 from django.utils import timezone
 
-from e_voting.models import Candidate, Vote, Poll, Voter
+from api.models import Candidate, Vote, Poll, Voter
 
 User = get_user_model()
 

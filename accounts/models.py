@@ -2,10 +2,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from phonenumber_field.modelfields import PhoneNumberField
 
-
-# Create your models here.
-
-
 class UserManager(BaseUserManager):
 
     def create_user(self, email, password=None, **extra_fields):
@@ -50,8 +46,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         # Simplest possible answer: All admins are staff
         return self.is_staff
 
-    # def __str__(self):
-    #     self.get_full_name()
+    def __str__(self):
+        self.email
 
     def get_full_name(self):
         return f'{self.first_name} {self.last_name}'
