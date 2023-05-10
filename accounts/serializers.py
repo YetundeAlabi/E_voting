@@ -5,6 +5,7 @@ from rest_framework.exceptions import AuthenticationFailed
 
 User = get_user_model()
 
+
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for the users object"""
 
@@ -17,14 +18,14 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """ create a new user """
         return User.objects.create_user(**validated_data)
-    
+
 
 class EmailVerificationSerializer(serializers.ModelSerializer):
     token = serializers.CharField(max_length=500)
 
     class Meta:
         model = User
-        fields = ["token"] 
+        fields = ["token"]
 
 
 class UserLoginSerializer(serializers.ModelSerializer):
@@ -42,7 +43,7 @@ class UserLoginSerializer(serializers.ModelSerializer):
             raise AuthenticationFailed("Email is not verified")
         if user and user.is_active:
             return user
-        raise serializers.ValidationError("Incorrect Credentials") 
+        raise serializers.ValidationError("Incorrect Credentials")
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
@@ -54,4 +55,3 @@ class UserDetailSerializer(serializers.ModelSerializer):
 
     def get_full_name(self, obj):
         return obj.get_full_name()
-
