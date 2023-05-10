@@ -83,6 +83,7 @@ class Voter(models.Model):
     poll = models.ForeignKey(
         Poll, on_delete=models.CASCADE, related_name="voters")
     is_voted = models.BooleanField(default=False)
+    email_sent = models.BooleanField(default=False)
 
     def __str__(self):
         return self.user.email
