@@ -9,6 +9,8 @@ from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from accounts.serializers import UserSerializer
+from django.contrib.auth import get_user_model
+
 
 from api import serializers
 from accounts.models import User
@@ -16,6 +18,7 @@ from .utils import Util
 from api.models import Candidate, Poll, Vote, Voter
 from api.permissions import IsAdminOrReadOnly
 
+# User = get_user_model()
 
 class PollListCreateView(generics.ListCreateAPIView):
     serializer_class = serializers.PollSerializer
@@ -94,7 +97,18 @@ class VoterPollListView(generics.ListAPIView):
     queryset = Voter.objects.all()
 
     def get_queryset(self):
+        """ as user can be a multiple voter, get all voters object linked to polls that is the current user """
         return Voter.objects.filter(user=self.request.user).all()
+    
+
+class VoterPollEmailView(generics.ListAPIView):
+    serializer_class = serializers.VoterDetailSerializer
+    queryset = User.objects.all()
+
+    def get_queryset(self):
+        query_set = super().get_queryset()
+        return query_set.filter(voters__isnull=False).distinct()
+
 
 
 class ListPollVoterView(generics.ListAPIView):
@@ -241,6 +255,7 @@ class PollResultView(generics.RetrieveAPIView):
 
 
 class PollWinnersView(generics.ListAPIView):
+    """ get a list of polls that have been voted on """
     queryset = Poll.objects.filter(poll_votes__isnull=False).distinct()
     serializer_class = serializers.PollWinnerSerializer
 

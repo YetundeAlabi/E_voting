@@ -39,8 +39,11 @@ class UserSignUpView(CreateAPIView):
             current_site = get_current_site(request).domain
             relative_link = reverse("email-verify")
 
-            absurl = f'http://{current_site}{relative_link}?token={refresh["access"]}'
-            print(absurl)
+            if settings.debug:
+                absurl = f'http://{current_site}{relative_link}?token={refresh["access"]}'
+                
+            absurl = f'https://{current_site}{relative_link}?token={refresh["access"]}'
+
             email_body = f'Hi {user.first_name} Use the link below to verify your email \n{absurl}'
             data = {"email_body": email_body, "to_email": user.email,
                     "email_subject": "Verify your email"}
