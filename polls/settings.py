@@ -50,7 +50,8 @@ INSTALLED_APPS = [
     "accounts",
     "api",
     "phonenumber_field",
-    "frontend"
+    "frontend",
+    "myapp",
 ]
 
 MIDDLEWARE = [
@@ -179,3 +180,11 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+# Celery Configuration
+CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Replace with your Celery broker URL
+CELERY_RESULT_BACKEND = 'django-db'  # Use Django database as the result backend
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Africa/Lagos'

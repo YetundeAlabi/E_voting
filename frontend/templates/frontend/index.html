@@ -1,118 +1,7 @@
-<!-- /*
-* Template Name: Learner
-* Template Author: Untree.co
-* Tempalte URI: https://untree.co/
-* License: https://creativecommons.org/licenses/by/3.0/
-*/ -->
-{% load static %}
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="author" content="Untree.co">
-  <link rel="shortcut icon" href="favicon.png">
+{% extends 'base_generic.html' %} 
+{%load static%}
 
-  <meta name="description" content="" />
-  <meta name="keywords" content="bootstrap, bootstrap4" />
-
-  <link href="https://fonts.googleapis.com/css2?family=Display+Playfair:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
-
-
-  <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
-
-  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
-  <link rel="stylesheet" href="{% static 'css/animate.min.css' %}">
-  <link rel="stylesheet" href="{% static 'css/owl.carousel.min.css' %}">
-  <link rel="stylesheet" href="{% static 'css/owl.theme.default.min.css' %}">
-  <link rel="stylesheet" href="{% static 'css/jquery.fancybox.min.css' %}">
-  <link rel="stylesheet" href="{% static 'fonts/icomoon/style.css' %}">
-  <link rel="stylesheet" href="{% static 'fonts/flaticon/font/flaticon.css' %}">
-  <link rel="stylesheet" href="{% static 'css/aos.css' %}">
-  <link rel="stylesheet" href="{% static 'css/style.css' %}">
-
-  <title>Learner Free Bootstrap Template by Untree.co</title>
-</head>
-
-<body>
-
-  <div class="site-mobile-menu">
-    <div class="site-mobile-menu-header">
-      <div class="site-mobile-menu-close">
-        <span class="icofont-close js-menu-toggle"></span>
-      </div>
-    </div>
-    <div class="site-mobile-menu-body"></div>
-  </div>
-
-
-  
-  <nav class="site-nav mb-5">
-    <div class="pb-2 top-bar mb-3">
-      <div class="container">
-        <div class="row align-items-center">
-
-          <div class="col-6 col-lg-9">
-            <a href="#" class="small mr-3"><span class="icon-question-circle-o mr-2"></span> <span class="d-none d-lg-inline-block">Have a questions?</span></a> 
-            <a href="#" class="small mr-3"><span class="icon-phone mr-2"></span> <span class="d-none d-lg-inline-block">10 20 123 456</span></a> 
-            <a href="#" class="small mr-3"><span class="icon-envelope mr-2"></span> <span class="d-none d-lg-inline-block">info@mydomain.com</span></a> 
-          </div>
-
-          <div class="col-6 col-lg-3 text-right">
-            <a href="login.html" class="small mr-3">
-              <span class="icon-lock"></span>
-              Log In
-            </a>
-            <a href="{% url 'frontend:signup' %}" class="small">
-              <span class="icon-person"></span>
-              Register
-            </a>
-          </div>
-
-        </div>
-      </div>
-    </div>
-    <div class="sticky-nav js-sticky-header">
-      <div class="container position-relative">
-        <div class="site-navigation text-center">
-          <a href="index.html" class="logo menu-absolute m-0">Learner<span class="text-primary">.</span></a>
-
-          <ul class="js-clone-nav d-none d-lg-inline-block site-menu">
-            <li class="active"><a href="index.html">Home</a></li>
-            <li class="has-children">
-              <a href="#">Dropdown</a>
-              <ul class="dropdown">
-                <li><a href="elements.html">Elements</a></li>
-                <li class="has-children">
-                  <a href="#">Menu Two</a>
-                  <ul class="dropdown">
-                    <li><a href="#">Sub Menu One</a></li>
-                    <li><a href="#">Sub Menu Two</a></li>
-                    <li><a href="#">Sub Menu Three</a></li>
-                  </ul>
-                </li>
-                <li><a href="#">Menu Three</a></li>
-              </ul>
-            </li>
-            <li><a href="staff.html">Our Staff</a></li>
-            <li><a href="news.html">News</a></li>
-            <li><a href="gallery.html">Gallery</a></li>
-            <li><a href="about.html">About</a></li>
-            <li><a href="contact.html">Contact</a></li>
-          </ul>
-
-          <a href="#" class="btn-book btn btn-secondary btn-sm menu-absolute">Enroll Now</a>
-
-          <a href="#" class="burger ml-auto float-right site-menu-toggle js-menu-toggle d-inline-block d-lg-none light" data-toggle="collapse" data-target="#main-navbar">
-            <span></span>
-          </a>
-
-        </div>
-      </div>
-    </div>
-  </nav>
-  
-
+{%block content %}
   <div class="untree_co-hero overlay" style="background-image: url({% static 'images/hero-img-1-min.jpg' %});">
 
 
@@ -124,8 +13,6 @@
           <div class="row justify-content-center ">
 
             <div class="col-lg-6 text-center ">
-              <a href="#" href="https://vimeo.com/342333493" data-fancybox data-aos="fade-up" data-aos-delay="0" class="caption mb-4 d-inline-block">Watch the video</a>
-
               <h1 class="mb-4 heading text-white" data-aos="fade-up" data-aos-delay="100">Voting is a fundamental right of any democracy </h1>
               <p class="mb-0" data-aos="fade-up" data-aos-delay="300"><a href="#" class="btn btn-secondary">a mechanism for people to participate in their own governance</a></p>
 
@@ -142,8 +29,6 @@
   </div> <!-- /.untree_co-hero -->
 
 
-  
-  
   <div class="untree_co-section">
     <div class="container">
       <div class="row justify-content-center mb-3">
@@ -157,19 +42,19 @@
     </div>
   </div>
   <script>
-    {% comment %} an AJAX request to the backend API to fetch polls data {% endcomment %}
+    /* an AJAX request to the backend API to fetch polls data */
     const pollsContainer = document.querySelector('#polls-container');
 
     // Get the token from local storage
-    {% comment %} const token = localStorage.getItem('token'); {% endcomment %}
+    /*const token = localStorage.getItem('token'); */
 
     var url = 'http://127.0.0.1:8000/api/polls/'
     fetch(url
-    {% comment %} , {
+    /* , {
       headers: {
         'Authorization': `Bearer ${token}`
       }
-    } {% endcomment %}
+    } */
     )
       .then(response => response.json())
       .then(data => {
@@ -196,23 +81,15 @@
       .catch(error => console.error(error));
   </script>
 
-
+{%endblock%}
       
     
-  
 
-  
-
-
-
-
- 
-    
 
            
 
 
-  <div class="site-footer">
+ {% comment %} <div class="site-footer">
 
     <div class="container">
 
@@ -279,4 +156,4 @@
 
   </body>
 
-  </html>
+  </html> */ {% endcomment %}

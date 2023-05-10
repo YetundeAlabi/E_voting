@@ -32,13 +32,7 @@ class Util:
         current_time = datetime.datetime.now()
         voters = Voter.objects.filter(polls__start_time__lte=current_time, email_sent=False)
         """ update voter email_sent field """
-        # voters.update(email_sent=True)
-        # voters_data = voters.values_list("poll_id", "email")
-        # voters_data = [list[data] for data in voters_data] 
 
-        # for poll_id ,email in voters_data:
-        #     poll_link = 
-        
         for voter in voters:
             voter_email = voter.email
             poll_link = reverse('poll_detail', args=[voter.poll.id])  
