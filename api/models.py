@@ -5,6 +5,8 @@ from django.db.models import Q
 from django.conf import settings
 from django.db.models.query import QuerySet
 from django.urls import reverse
+from phonenumber_field.modelfields import PhoneNumberField
+
 from accounts.models import User
 
 now = datetime.datetime.now()
@@ -78,18 +80,21 @@ class Vote(models.Model):
 
 
 class Voter(models.Model):
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, unique=False, on_delete=models.CASCADE)
+    # user = models.OneToOneField(
+        # settings.AUTH_USER_MODEL, unique=False, on_delete=models.CASCADE)
+    email = models.EmailField(verbose_name="email address", max_length=255, unique=True)
+    full_name = models.CharField(max_length=255)
+    phone_number = PhoneNumberField(blank=True)
     poll = models.ForeignKey(
         Poll, on_delete=models.CASCADE, related_name="voters")
     is_voted = models.BooleanField(default=False)
     email_sent = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.user.email
+        return self.email
 
     def get_full_name(self):
-        return self.user.get_full_name()
+        return self.full_name
 
     def cast_vote(self):
         if not self.is_voted:
