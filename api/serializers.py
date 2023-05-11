@@ -42,7 +42,7 @@ class VoterImportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Voter
         fields = ['email', 'fullname', 'phone_number']
-        read_only_fields = ['id']
+        
 
     def create(self, validated_data):
         poll_data = validated_data.pop('poll')
@@ -66,7 +66,9 @@ class PollDetailSerializer(serializers.ModelSerializer):
 
     def get_voter(self, obj):
         voter = obj.voters.filter(id=self.context['request'].user.id).first()
-        return VoterSerializer(voter).data
+        if voter:
+            return VoterSerializer(voter).data
+        return None
 
     def update(self, instance, validated_data):
         """update start and end time before a poll start """
@@ -97,24 +99,37 @@ class PollDetailSerializer(serializers.ModelSerializer):
         return instance
 
 
-class CandidateSerializer(serializers.ModelSerializer):
-    # votes = VoteSerializer(many=True, required=False)
-    name = serializers.CharField()
+# class CandidateSerializer(serializers.ModelSerializer):
+#     # votes = VoteSerializer(many=True, required=False)
+#     name = serializers.CharField()
 
+#     class Meta:
+#         model = Candidate
+#         fields = ["name"]
+
+
+class CandidateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Candidate
-        fields = ["name"]
+        fields = ['id', 'name', 'poll']
+        read_only_fields = ['id']
 
-class VoterDetailSerializer(serializers.ModelSerializer):
-    poll = serializers.SerializerMethodField
+    
 
-    class Meta:
-        model = Voter
-        fields = ["id", "email", "fullname", "phone_number", "poll"]
+# class VoterDetailSerializer(serializers.ModelSerializer):
+#     poll = serializers.SerializerMethodField
+#     full_name = serializers.SerializerMethodField()
 
-    def get_poll(self, obj):
-        polls = obj.poll.filter(id=self.request.user.id).all()
-        return PollSerializer(polls, many=True).data
+#     class Meta:
+#         model = Voter
+#         fields = ["id", "email", "full_name", "phone_number", "poll"]
+
+#     def get_poll(self, obj):
+#         polls = obj.poll.filter(id=self.request.user.id).all()
+#         return PollSerializer(polls, many=True).data
+
+#     def get_full_name(self, obj):
+#         return obj.get_full_name()
 
 
 class FileImportSerializer(serializers.Serializer):

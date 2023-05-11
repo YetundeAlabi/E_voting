@@ -54,7 +54,7 @@ class Poll(models.Model):
 
 class Candidate(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    image = models.ImageField(upload_to="e_voting/candidates", null=True)
+    image = models.ImageField(upload_to="e_voting/candidates", null=True, blank=True)
     poll = models.ForeignKey(
         Poll, on_delete=models.CASCADE, null=True, related_name="candidates")
 
