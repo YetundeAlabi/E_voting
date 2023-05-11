@@ -80,10 +80,9 @@ class Vote(models.Model):
 
 
 class Voter(models.Model):
-    # user = models.OneToOneField(
-        # settings.AUTH_USER_MODEL, unique=False, on_delete=models.CASCADE)
     email = models.EmailField(verbose_name="email address", max_length=255, unique=True)
-    full_name = models.CharField(max_length=255)
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
     phone_number = PhoneNumberField(blank=True)
     poll = models.ForeignKey(
         Poll, on_delete=models.CASCADE, related_name="voters")
@@ -94,7 +93,7 @@ class Voter(models.Model):
         return self.email
 
     def get_full_name(self):
-        return self.full_name
+        return f'{self.first_name} {self.last_name}'
 
     def cast_vote(self):
         if not self.is_voted:

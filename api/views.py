@@ -247,7 +247,7 @@ class CreateVoteView(generics.CreateAPIView):
             """ check if voter has voted """
             if voter.cast_vote():
                 vote = Vote.objects.create(
-                    poll=poll, candidate=candidate, voted_by=user)
+                    poll=poll, candidate=candidate, voted_by=voter)
                 serializer = serializers.VoteSerializer(vote)
                 return Response({"success": "Thank you for voting"}, serializer.data, status=status.HTTP_201_CREATED)
             else:
@@ -282,5 +282,5 @@ class PollWinnersView(generics.ListAPIView):
 
 class TestView(generics.ListAPIView):
     serializer_class = UserSerializer
-    queryset = User.objects.all()
+    queryset = Voter.objects.all()
     permission_classes = []
