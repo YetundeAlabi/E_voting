@@ -1,0 +1,127 @@
+{% extends 'base.html'%}
+
+  {%block main%}
+
+  <main id="main" class="main">
+
+    <div class="pagetitle">
+      <h1>Form Elements</h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+          <li class="breadcrumb-item">Forms</li>
+          <li class="breadcrumb-item active">Elements</li>
+        </ol>
+      </nav>
+    </div><!-- End Page Title -->
+
+    <section class="section">
+      <div class="row">
+        <div class="col-lg-6">
+
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Create Voting Poll</h5>
+
+              <!-- General Form Elements -->
+              <form id="voting-poll-form">
+                <div class="row mb-3">
+                  <label for="inputText" class="col-sm-3 col-form-label">Name</label>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="name-input">
+                  </div>
+                </div>
+               <!-- <div class="row mb-3">
+                    <label for="image-input" class="col-sm-2 col-form-label">File Upload</label>
+                    <div class="col-sm-10">
+                      <input class="form-control" type="file" id="formFile">
+                    </div>
+                </div> -->
+                
+                <div class="row mb-3">
+                    <label for="poll-select" class="col-sm-2 col-form-label">Poll:</label>
+                    <div class="col-sm-10">
+                    <select class="form-select" aria-label="Default select example" id="poll-select" required>
+                      <option value="">Select a poll</option>
+                      <!-- Dynamically populate poll options using JavaScript -->
+                    </select>
+                 </div>
+                </div>
+                <div class="row mb-3">
+                  <label class="col-sm-4 col-form-label">Submit Button</label>
+                  <div class="col-sm-10">
+                    <button type="submit" class="btn btn-primary">Create Candidate</button>
+                  </div>
+                </div>
+      
+          </div>
+       </div>
+    </section>
+      
+  </main><!-- End #main -->
+  {%endblock%}
+  {%block script%}
+  <script>
+    // Fetch the list of polls and populate the select dropdown
+    fetch("http://127.0.0.1:8000/api/polls/")
+      .then(function(response) {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error("Failed to fetch polls.");
+        }
+      })
+      .then(function(data) {
+        var pollSelect = document.getElementById("poll-select");
+        data.forEach(function(poll) {
+          var option = document.createElement("option");
+          option.value = poll.id;
+          option.textContent = poll.name;
+          pollSelect.appendChild(option);
+        });
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
+  
+    document.getElementById("candidate-form").addEventListener("submit", function(event) {
+      event.preventDefault(); // Prevent the form from submitting normally
+  
+      // Get form input values
+      var name = document.getElementById("name-input").value;
+      /*var image = document.getElementById("image-input").files[0]; */
+      var pollId = document.getElementById("poll-select").value;
+  
+      // Create FormData object to send the form data as multipart/form-data
+      var formData = new FormData();
+      formData.append("name", name);
+      /*formData.append("image", image); */
+      formData.append("poll", pollId);
+  
+      // Make POST request to Django API
+      fetch("http://127.0.0.1:8000/api/polls/${pollId}/candidates/", {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": csrftoken,
+        },
+        body: formData
+      })
+        .then(function(response) {
+          if (response.ok) {
+            // Candidate created successfully
+            alert("Candidate created successfully!");
+  
+          } else {
+            // Error in creating candidate
+            alert("Failed to create candidate.");
+            
+          }
+        })
+        .catch(function(error) {
+          // Error in making the request
+          alert("An error occurred while creating the candidate.");
+          console.log(error);
+        });
+    });
+  </script>
+  {%endblock%}

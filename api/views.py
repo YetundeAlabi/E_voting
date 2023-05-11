@@ -24,9 +24,9 @@ class PollListCreateView(generics.ListCreateAPIView):
     serializer_class = serializers.PollSerializer
     # permission_classes = [IsAdminOrReadOnly, IsAuthenticated]
     permission_classes = []
-    
+
     def get_queryset(self):
-        return Poll.pollobjects.all()  # only get active polls
+        return Poll.objects.all()  # only get active polls
 
 
 class PollListView(generics.ListAPIView):
