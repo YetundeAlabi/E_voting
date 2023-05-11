@@ -26,7 +26,7 @@ class PollListCreateView(generics.ListCreateAPIView):
     permission_classes = []
 
     def get_queryset(self):
-        return Poll.objects.all()  # only get active polls
+        return Poll.pollobjects.all()  # only get active polls
 
 
 class PollListView(generics.ListAPIView):
