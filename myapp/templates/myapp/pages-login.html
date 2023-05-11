@@ -194,8 +194,7 @@
     <!-- Template Main JS File -->
     <script src="{% static 'assets/js/main.js' %}"></script>
     <script>
-      console.log("got to login here");
-
+      
       function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== "") {
@@ -221,8 +220,7 @@
       const emailInput = document.getElementById("yourEmail");
       const passwordInput = document.getElementById("yourPassword");
 
-      console.log("email", emailInput); // Output: "John"
-      console.log("password:", passwordInput); // Output: "Doe"
+    
       loginForm.addEventListener("submit", (event) => {
         event.preventDefault(); // prevent the form from submitting on it own
         console.log("login submitted");

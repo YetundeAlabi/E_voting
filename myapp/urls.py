@@ -20,7 +20,7 @@ urlpatterns = [
     # path("voters/<int:pk>/", views.VoterPollListView.as_view(), name="voters_polls"),
     # path("polls/<int:pk>/import/", views.VoterImportView.as_view(), name="import_voters"),
     # path('polls/<int:pk>/candidate/<int:candidate_pk>/vote', views.CreateVoteView, name="crreate_vote")
-    # path('polls/', views.index, name="index"),
+    path('dashboard/forms/', views.form, name="form"),
     path('dashboard', views.dashboard, name='dashboard'),
 
     path("", views.login, name="login")

@@ -10,3 +10,6 @@ def dashboard(request):
 
 def login(request):
     return render(request, "myapp/pages-login.html")
+
+def form(request):
+    return render(request, "myapp/forms-elements.html")
