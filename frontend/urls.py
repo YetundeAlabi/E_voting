@@ -10,7 +10,6 @@ urlpatterns = [
     path('', views.signup, name='signup'),
     path("login/", views.login, name="login"),
     path("vote/<int:poll_id>/voters/<int:voter_id>/", views.vote, name="vote")
-
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL,
