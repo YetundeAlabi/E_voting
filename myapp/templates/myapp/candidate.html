@@ -5,10 +5,10 @@
   <main id="main" class="main">
 
     <div class="pagetitle">
-      <h1>Form Elements</h1>
+      <h1>Create Candidate</h1>
       <nav>
         <ol class="breadcrumb">
-          <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+          <li class="breadcrumb-item"><a href="index.html">poll</a></li>
           <li class="breadcrumb-item">Forms</li>
           <li class="breadcrumb-item active">Elements</li>
         </ol>
@@ -21,22 +21,17 @@
 
           <div class="card">
             <div class="card-body">
-              <h5 class="card-title">Create Voting Poll</h5>
+              <h5 class="card-title">Candidate Form </h5>
 
               <!-- General Form Elements -->
-              <form id="voting-poll-form">
+              <form id="candidate-form">
                 <div class="row mb-3">
                   <label for="inputText" class="col-sm-3 col-form-label">Name</label>
                   <div class="col-sm-10">
                     <input type="text" class="form-control" id="name-input">
                   </div>
                 </div>
-               <!-- <div class="row mb-3">
-                    <label for="image-input" class="col-sm-2 col-form-label">File Upload</label>
-                    <div class="col-sm-10">
-                      <input class="form-control" type="file" id="formFile">
-                    </div>
-                </div> -->
+               
                 
                 <div class="row mb-3">
                     <label for="poll-select" class="col-sm-2 col-form-label">Poll:</label>
@@ -48,7 +43,6 @@
                  </div>
                 </div>
                 <div class="row mb-3">
-                  <label class="col-sm-4 col-form-label">Submit Button</label>
                   <div class="col-sm-10">
                     <button type="submit" class="btn btn-primary">Create Candidate</button>
                   </div>
@@ -62,6 +56,24 @@
   {%endblock%}
   {%block script%}
   <script>
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          // Does this cookie string begin with the name we want?
+          if (cookie.substring(0, name.length + 1) === name + "=") {
+            cookieValue = decodeURIComponent(
+              cookie.substring(name.length + 1)
+            );
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+    const csrftoken = getCookie("csrftoken");
     // Fetch the list of polls and populate the select dropdown
     fetch("http://127.0.0.1:8000/api/polls/")
       .then(function(response) {
@@ -89,22 +101,27 @@
   
       // Get form input values
       var name = document.getElementById("name-input").value;
-      /*var image = document.getElementById("image-input").files[0]; */
+      
       var pollId = document.getElementById("poll-select").value;
-  
-      // Create FormData object to send the form data as multipart/form-data
-      var formData = new FormData();
-      formData.append("name", name);
-      /*formData.append("image", image); */
-      formData.append("poll", pollId);
-  
+      
+      console.log(
+        JSON.stringify({
+          name: name,
+          poll: pollId
+        })
+      );
       // Make POST request to Django API
-      fetch("http://127.0.0.1:8000/api/polls/${pollId}/candidates/", {
+      fetch(`http://127.0.0.1:8000/api/polls/${pollId}/candidates/`, {
         method: "POST",
         headers: {
+          "Content-Type": "application/json",
           "X-CSRFToken": csrftoken,
+          'Authorization': `Bearer ${window.localStorage.getItem('accessToken')}`
         },
-        body: formData
+        body: JSON.stringify({
+          name: name,
+          poll: pollId
+        })
       })
         .then(function(response) {
           if (response.ok) {

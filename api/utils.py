@@ -28,29 +28,44 @@ class Util:
             print(f"An error occured: {e}")
 
     @staticmethod
-    def send_poll_email():
-        current_time = datetime.datetime.now()
-        voters = Voter.objects.filter(polls__start_time__lte=current_time, email_sent=False)
-        """ update voter email_sent field """
-
+    def send_poll_email(voters, current_site):
+        
         for voter in voters:
+            poll_id = voter.poll.id
+            voter_id = voter.id
             voter_email = voter.email
-            poll_link = reverse('poll_detail', args=[voter.poll.id])  
+            poll_link = reverse('voter_detail', kwargs={'pk': poll_id, 'voter_pk': voter_id})
+            voter_link = reverse('voter_detail', args=[poll_id, voter_id])
+
             # Update the voter to mark that their poll email has been sent
             voter.email_sent = True
             voter.save()
-
+            print(voter)
             # Send the poll email to the voter
-            send_mail(
-                subject='Poll Notification',
-                message=f'Please participate in the poll. Click the link below:\n\n{settings.BASE_URL}{poll_link}',
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[voter_email],
-                fail_silently=True,
-            )
-       
+            try:
+                send_mail(
+                    subject='Poll Notification',
+                    message=f'Please participate in the poll. Click the link below:\n\n{current_site}{poll_link}',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[voter_email],
+                    fail_silently=True,
+                )
+            except smtplib.SMTPException as e:
+                print(f"An error occured: {e}")
+            
         
 
 
+
+
+    # @staticmethod   
+    # def send_poll_email():
+    #     send_mail(
+    #         subject='Poll Notification',
+    #         message=f'Please participate in the poll. Click the link below:\n\n{settings.BASE_URL}{voter_link}',
+    #         from_email=settings.DEFAULT_FROM_EMAIL,
+    #         recipient_list=[voter_email],
+    #         fail_silently=True,
+    #     )
 
 

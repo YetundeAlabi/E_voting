@@ -77,7 +77,7 @@
                 class="col-lg-4 col-md-6 d-flex flex-column align-items-center justify-content-center"
               >
                 <div class="d-flex justify-content-center py-4">
-                  <span class="d-none d-lg-block">Admin</span> 
+                  <span class="d-none d-lg-block">Admin</span>
                 </div>
                 <!-- End Logo -->
 
@@ -163,6 +163,7 @@
                           Don't have account?
                           <a href="pages-register.html">Create an account</a>
                         </p>
+                        <p id="error"></p>
                       </div>
                     </form>
                   </div>
@@ -194,7 +195,6 @@
     <!-- Template Main JS File -->
     <script src="{% static 'assets/js/main.js' %}"></script>
     <script>
-      
       function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== "") {
@@ -219,12 +219,56 @@
       const loginBtn = document.getElementById("login-btn");
       const emailInput = document.getElementById("yourEmail");
       const passwordInput = document.getElementById("yourPassword");
-
-    
+      const error = document.getElementById("error")
+      
       loginForm.addEventListener("submit", (event) => {
         event.preventDefault(); // prevent the form from submitting on it own
         console.log("login submitted");
+        
         var url = "http://127.0.0.1:8000/accounts/auth/login/";
+        async function makeRequest(){
+          try {
+            const config = {
+              method:'POST',
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                email: emailInput.value,
+                password: passwordInput.value,
+              })
+            }
+            const response = await fetch(url, config)
+            console.log("response.status: ", response.status);
+            
+            if (response.ok) {
+              const data = await response.json()
+              console.log(data)
+              const accessToken = data.tokens["access"];
+              console.log(accessToken)
+              localStorage.setItem('accessToken', accessToken);
+              location.replace("/myapp/dashboard")
+              //return response
+            } else {
+              emailInput.value = null
+              passwordInput.value = null
+              <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                Invalid Credentials
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+              error.innerHTML = "Invalid Credentials"
+              console.log(response)
+            }
+            
+          } catch (err) {
+            console.log(err);
+          }
+        }
+
+        makeRequest();
+        
+        /*var url = "http://127.0.0.1:8000/accounts/auth/login/";
         console.log(
           JSON.stringify({
             email: emailInput.value,
@@ -242,10 +286,25 @@
             password: passwordInput.value,
           }),
         })
-          .then((response) => response.json())
-          .then((data) => console.log(data))
-          .catch((error) => console.error(error));
-      });
-    </script>
+          .then((response) => {
+
+          } response.json())
+          
+          .then((data) => {
+            console.log(data);
+            const accessToken = data.tokens["access"];
+            console.log(accessToken);
+            localStorage.setItem('accessToken', accessToken);
+            
+
+          })
+          .catch((error) => {
+            console.error(error);
+          })*/
+      }) 
+  </script>
   </body>
-</html>
+  </html>
+  
+        
+    
