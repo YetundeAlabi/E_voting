@@ -346,6 +346,7 @@
         headers: {
           "Content-Type": "application/json",
           "X-CSRFToken": csrftoken,
+          "Authorization": `Bearer ${window.localStorage.getItem('accessToken')}`
         },
         body: JSON.stringify(data)
       })

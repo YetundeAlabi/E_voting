@@ -14,4 +14,6 @@ urlpatterns = [
     path('polls/<int:pk>/result/', views.PollResultView.as_view(), name='poll_result'),
     path('voters/', views.VoterListView.as_view(), name='voter_list'),
     # path('voters/<int:pk>/', views.VoterPollListView.as_view(), name='voters_polls'),
+    path('polls/<int:pk>/voters/<int:voter_pk>/', views.VoterDetailView.as_view(), name="voter_detail"),
+    path("send-email/", views.SendPollEmailView.as_view(), name="send-email")
 ]

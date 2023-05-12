@@ -1,4 +1,5 @@
 import datetime
+import uuid
 
 from django.db import models
 from django.db.models import Q
@@ -68,18 +69,8 @@ class Candidate(models.Model):
         return self.candidate_votes.count()
 
 
-class Vote(models.Model):
-    poll = models.ForeignKey(
-        Poll, on_delete=models.CASCADE, related_name="poll_votes")
-    candidate = models.ForeignKey(
-        Candidate, on_delete=models.CASCADE, related_name="candidate_votes")
-    voted_by = models.ForeignKey(User, on_delete=models.CASCADE)
-
-    class Meta:
-        unique_together = ("poll", "voted_by")
-
-
 class Voter(models.Model):
+    # uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(verbose_name="email address", max_length=255, unique=True)
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
@@ -101,3 +92,14 @@ class Voter(models.Model):
             self.save()
             return True
         return False
+    
+
+class Vote(models.Model):
+    poll = models.ForeignKey(
+        Poll, on_delete=models.CASCADE, related_name="poll_votes")
+    candidate = models.ForeignKey(
+        Candidate, on_delete=models.CASCADE, related_name="candidate_votes")
+    voted_by = models.ForeignKey(Voter, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ("poll", "voted_by")
