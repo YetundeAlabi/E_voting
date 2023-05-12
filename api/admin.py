@@ -35,7 +35,6 @@ search_fields = ("email",)
 ordering = ("email",)
 
 admin.site.register(User, UserAdmin)
-
 admin.site.register(Poll)
 admin.site.register(Candidate)
 admin.site.register(Vote)
