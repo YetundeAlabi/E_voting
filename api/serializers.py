@@ -28,7 +28,6 @@ class PollSerializer(serializers.Serializer):
         return serializer.data
 
 
-
 class VoteSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -55,7 +54,6 @@ class VoterImportSerializer(serializers.ModelSerializer):
         model = Voter
         fields = ['email', 'first_name', "last_name", 'phone_number']
         
-
     def create(self, validated_data):
         poll_data = validated_data.pop('poll')
         voter = Voter.objects.create(**validated_data, poll=poll_data)
@@ -66,7 +64,7 @@ class PollDetailSerializer(serializers.ModelSerializer):
     candidates = serializers.StringRelatedField(
         many=True, read_only=True, required=False)
     is_active = serializers.BooleanField()
-    # voters = VoterSerializer(many=True, read_only=True)
+    voter = serializers.SerializerMethodField()
 
     class Meta:
         model = Poll
@@ -75,9 +73,13 @@ class PollDetailSerializer(serializers.ModelSerializer):
 
     def get_is_active(self, obj):
         return obj.is_active()
-
     
-        
+    def get_voter(self, obj):
+        voter_id= self.context.get('voter_id')
+        print(voter_id)
+        voter = obj.objects.get(voters__id=voter_id)
+        serializer = VoterSerializer(voter)
+        return serializer.data 
 
     def update(self, instance, validated_data):
         """update start and end time before a poll start """
@@ -115,7 +117,6 @@ class CandidateSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
     
-
 class VoterDetailSerializer(serializers.ModelSerializer):
     poll = PollDetailSerializer()
     full_name = serializers.SerializerMethodField()
@@ -124,9 +125,9 @@ class VoterDetailSerializer(serializers.ModelSerializer):
         model = Voter
         fields = ["id", "email", "full_name", "phone_number", "poll"]
 
-    # def get_poll(self, obj):
-    #     polls = obj.poll.filter(id=self.request.user.id).all()
-    #     return PollSerializer(polls, many=True).data
+    def get_poll(self, obj):
+        polls = obj.poll.filter(id=self.request.user.id).all()
+        return PollSerializer(polls, many=True).data
 
     def get_full_name(self, obj):
         return obj.get_full_name()
@@ -163,10 +164,11 @@ class CandidateDetailSerializer(serializers.ModelSerializer):
         return obj.get_vote_count()
 
 
-class PollResultSerializer(PollDetailSerializer):
+class PollResultSerializer(serializers.ModelSerializer):
     total_votes = serializers.SerializerMethodField(read_only=True)
     candidates = CandidateDetailSerializer(many=True, read_only=True)
     winner = serializers.SerializerMethodField()
+    voter = serializers.SerializerMethodField()
 
     class Meta:
         model = Poll
@@ -184,6 +186,15 @@ class PollResultSerializer(PollDetailSerializer):
             winner = queryset[0]
             serializer = CandidateDetailSerializer(winner)
             return serializer.data
+        
+    def get_voter(self, obj):
+        voter_id= self.context.get('voter_id')
+        try:
+            voter = obj.voters.get(id=voter_id)
+            serializer = VoterSerializer(voter)
+            return serializer.data
+        except Voter.DoesNotExist:
+            return None
 
 
 class PollWinnerSerializer(serializers.ModelSerializer):
@@ -193,6 +204,7 @@ class PollWinnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vote
         fields = ('poll_name', 'winner_name')
+
 
 class PollSerializer(serializers.Serializer):
 

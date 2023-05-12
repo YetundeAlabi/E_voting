@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Poll Candidate Details</title>
+  <!-- Add any necessary CSS styles -->
+</head>
+<body>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Poll Candidate Details</h5>
+      <ul class="list-group" id="candidate-list">
+        <!-- Candidate details will be dynamically added here -->
+      </ul>
+    </div>
+  </div>
+
+  {%block script%}
+  <script src="poll_candidate_details.js"></script>
+  <script>
+  async function fetchCandidates(pollId) {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/polls/${pollId}/candidates`);
+      const data = await response.json();
+      const candidateList = document.getElementById('candidate-list');
+  
+      data.forEach(candidate => {
+        const listItem = document.createElement('li');
+        listItem.className = 'list-group-item list-group-item-info';
+        listItem.textContent = candidate.name;
+  
+        candidateList.appendChild(listItem);
+      });
+    } catch (error) {
+      console.log('Error:', error);
+    }
+  }
+  
+  async function loadCandidateDetails() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const pollId = urlParams.get('pollId');
+  
+    if (pollId) {
+      await fetchCandidates(pollId);
+    }
+  }
+
+  loadCandidateDetails();
+</script>
+  

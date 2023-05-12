@@ -70,7 +70,7 @@ class Candidate(models.Model):
 
 
 class Voter(models.Model):
-    # uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(verbose_name="email address", max_length=255, unique=True)
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
@@ -79,6 +79,7 @@ class Voter(models.Model):
         Poll, on_delete=models.CASCADE, related_name="voters")
     is_voted = models.BooleanField(default=False)
     email_sent = models.BooleanField(default=False)
+    is_deleted = models.BooleanField(default=False)
 
     def __str__(self):
         return self.email

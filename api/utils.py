@@ -34,8 +34,8 @@ class Util:
             poll_id = voter.poll.id
             voter_id = voter.id
             voter_email = voter.email
-            poll_link = reverse('voter_detail', kwargs={'pk': poll_id, 'voter_pk': voter_id})
-            voter_link = reverse('voter_detail', args=[poll_id, voter_id])
+            # poll_link = reverse('frontend:vote', kwargs={'pk': poll_id, 'voter_pk': voter_id})
+            voter_link = reverse('frontend:vote', args=[poll_id, voter_id])
 
             # Update the voter to mark that their poll email has been sent
             voter.email_sent = True
@@ -45,7 +45,7 @@ class Util:
             try:
                 send_mail(
                     subject='Poll Notification',
-                    message=f'Please participate in the poll. Click the link below:\n\n{current_site}{poll_link}',
+                    message=f'Please participate in the poll. Click the link below:\n\n{current_site}{voter_link}',
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[voter_email],
                     fail_silently=True,
