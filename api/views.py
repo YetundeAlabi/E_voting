@@ -1,24 +1,21 @@
 import csv
-from datetime import datetime
+
 from django.db import transaction
 from django.contrib.sites.shortcuts import get_current_site
 
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework import status, serializers
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
-from accounts.serializers import UserSerializer
-from django.contrib.auth import get_user_model
-
 
 from api import serializers
 from accounts.models import User
 from api.models import Candidate, Poll, Vote, Voter
 from api.permissions import IsAdminOrReadOnly
 from api.utils import Util
-# User = get_user_model()
+
 
 class PollListCreateView(generics.ListCreateAPIView):
     serializer_class = serializers.PollListSerializer
@@ -27,14 +24,6 @@ class PollListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         return Poll.objects.all()  # only get active polls
-
-
-# class PollListView(generics.ListAPIView):
-#     serializer_class = serializers.PollSerializer
-#     permission_classes = []
-
-#     def get_queryset(self):
-#         return Poll.objects.all()
 
 
 class PollDetailView(generics.RetrieveUpdateAPIView):
@@ -97,7 +86,6 @@ class CandidateUpdateView(generics.UpdateAPIView):
     def get_object(self):
         candidate_id = self.kwargs['candidate_pk']
         return self.queryset.get(id=candidate_id)
-
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -171,15 +159,10 @@ class VoterDestroyView(generics.DestroyAPIView):
 
 class VoterImportView(APIView):
     """ import voters using a csv"""
-    #parser_classes = (MultiPartParser, FormParser)
+    parser_classes = (MultiPartParser, FormParser)
     permission_classes = [IsAdminUser]
 
     def post(self, request, *args, **kwargs):
-        # serializer = serializers.FileImportSerializer(data=request.data)
-        # print("hi")
-        # serializer.is_valid(raise_exception=True)
-
-        # file = serializer.validated_data.get("file")
         file = request.FILES.get('file')
         print(file.name)
         """ Check that the file uploaded is csv file"""
@@ -194,7 +177,7 @@ class VoterImportView(APIView):
             """Collect all the rows with errors instead of returning on the first error"""
             errors = []
 
-           
+            with transaction.atomic():
                 for row in reader:
                     row_serializer = serializers.VoterImportSerializer(data=row)
 
@@ -222,34 +205,21 @@ class VoterImportView(APIView):
                                         'email': ['Voter with this user and poll ID already exists']}})
                         continue
                     
-                        # Create the voter instance
-                    # voter = row_serializer.save(poll=poll)
-
                     # Instantiate the voter object
                     voter = Voter(**row_serializer.validated_data, poll=poll)
                     voter.save()
                         
                 if errors:
+                    transaction.rollback()
                     # If there are any errors, return a response with errors
                     return Response({'status': 'failure', 'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
-
+                transaction.commit()
                 # If no errors, return a success response
                 return Response({'status': 'success'}, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
-        #     if errors:
-        #         # If there are any errors, rollback the transaction and return a response with errors
-        #         transaction.rollback()
-        #         return Response({'status': 'failure', 'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        #     # If no errors, commit the transaction and return a success response
-        #     transaction.commit()
-        #     return Response({'status': 'success'}, status=status.HTTP_201_CREATED)
-
-        # except Exception as e:
-        #     return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class VoterImportView(APIView):
     """ import voters using a csv"""
