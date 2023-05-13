@@ -130,10 +130,10 @@ class VoterCreateView(CreateView):
     fields = "__all__"
 
 
-class VoterUploadView(View):
+class VoterImportView(View):
     def get(self, request, poll_id):
         form = VoterUploadForm()
-        return render(request, 'upload_voters.html', {'form': form})
+        return render(request, 'import_voters.html', {'form': form})
 
     def post(self, request, poll_id):
         try:
@@ -178,7 +178,7 @@ class SendEmailView(View):
             voter_id = voter.id
             voter_email = voter.email
             # poll_link = reverse('frontend:vote', kwargs={'pk': poll_id, 'voter_pk': voter_id})
-            voter_link = reverse('frontend:vote', args=[poll_id, voter_id])
+            voter_link = reverse('voting:vote', args=[poll_id, voter_id])
  
             # Send the poll email to the voter
             try:
@@ -195,7 +195,7 @@ class SendEmailView(View):
             finally:
                 Voter.objects.values_list("email", flat=True).update(email_sent=True)
      
-
+""" takes a GET request"""
 def voter_detail_view(request, pk, voter_pk):
     try:
         voter = Voter.objects.get(id=voter_pk)
@@ -210,46 +210,96 @@ def voter_detail_view(request, pk, voter_pk):
 
     except Voter.DoesNotExist:
         raise Http404
-        
 
-def vote_view(request, poll_id, voter_id): 
-    voter = get_object_or_404(Voter, id=voter_id)
-    poll = voter.poll
-    # candidates = Candidate.objects.filter(poll=poll)
 
-    # if request.method == 'POST':
-    #     candidate_id = request.POST.get('candidate')
-    #     candidate = get_object_or_404(Candidate, pk=candidate_id)
-    #     voter = get_object_or_404(Voter, uuid=voter.id)  
+class VoteView(View):
+    def post(self, request, poll_id, voter_id):
+        voter = get_object_or_404(Voter, id=voter_id)
+        poll = voter.poll
+        if poll.is_active:
+            return render(request, 'poll_detail.html', {"poll": poll})
 
-    try:
-        selected_candidate = poll.candidates.get(pk=request.POST["candidate"])
+        try:
+            selected_candidate = poll.candidates.get(pk=request.POST.get("candidate"))
 
-    except (KeyError, Candidate.DoesNotExist):
-    # Redisplay the question voting form.
-        return render(
-        request,
-        "poll_voter_detail.html",
-        {
-        "poll": poll,
-        "error_message": "You didn't select a candidate.",
-        },
-        )
-    # Check if the voter has already voted for this poll
-    if Vote.objects.filter(poll=poll, voted_by=voter).exists():
+        except (KeyError, Candidate.DoesNotExist):
+            return render(
+                request,
+                "poll_voter_detail.html",
+                {
+                    "poll": poll,
+                    "error_message": "You didn't select a candidate.",
+                },
+            )
 
-        return redirect('voting:already-voted')
+        if Vote.objects.filter(poll=poll, voted_by=voter).exists():
+            return redirect('voting:already-voted')
 
-    # Create a new vote
-    vote = Vote(poll=poll, candidate=selected_candidate, voted_by=voter)
-    vote.save()
+        vote = Vote(poll=poll, candidate=selected_candidate, voted_by=voter)
+        vote.save()
 
-    # Increment the vote count for the candidate
-    selected_candidate.vote_count += 1
-    selected_candidate.save()
+        selected_candidate.vote_count += 1
+        selected_candidate.save()
 
-    # Redirect to a success page or any other desired page
-    # return HttpResponseRedirect(reverse("polls:results", args=(question.id,)))
-    return HttpResponseRedirect('voting:vote-success')
+        # return redirect('voting:vote-success')
+        return HttpResponseRedirect('voting:vote-success')
+    
+    
+    def get(self, request, poll_id, voter_id):
+        try:
+            voter = Voter.objects.get(id=voter_id)
+            poll = voter.poll
+            candidates = poll.candidates.all()
+            context = {
+                'poll': poll,
+                'voter': voter,
+                'candidates': candidates,
+            }
+            return render(request, 'poll_voter_detail.html', context)
 
-    return render(request, 'vote_form.html', {'poll': poll, 'candidates': candidates})
+        except Voter.DoesNotExist:
+            raise Http404
+    
+    
+
+# def vote_view(request, poll_id, voter_id): 
+#     voter = get_object_or_404(Voter, id=voter_id)
+#     poll = voter.poll
+#     # candidates = Candidate.objects.filter(poll=poll)
+
+#     # if request.method == 'POST':
+#     #     candidate_id = request.POST.get('candidate')
+#     #     candidate = get_object_or_404(Candidate, pk=candidate_id)
+#     #     voter = get_object_or_404(Voter, uuid=voter.id)  
+
+#     try:
+#         selected_candidate = poll.candidates.get(pk=request.POST["candidate"])
+
+#     except (KeyError, Candidate.DoesNotExist):
+#     # Redisplay the question voting form.
+#         return render(
+#         request,
+#         "poll_voter_detail.html",
+#         {
+#         "poll": poll,
+#         "error_message": "You didn't select a candidate.",
+#         },
+#         )
+#     # Check if the voter has already voted for this poll
+#     if Vote.objects.filter(poll=poll, voted_by=voter).exists():
+
+#         return redirect('voting:already-voted')
+
+#     # Create a new vote
+#     vote = Vote(poll=poll, candidate=selected_candidate, voted_by=voter)
+#     vote.save()
+
+#     # Increment the vote count for the candidate
+#     selected_candidate.vote_count += 1
+#     selected_candidate.save()
+
+#     # Redirect to a success page or any other desired page
+#     # return HttpResponseRedirect(reverse("polls:results", args=(question.id,)))
+#     return HttpResponseRedirect('voting:vote-success')
+
+#     return render(request, 'vote_form.html', {'poll': poll, 'candidates': candidates})
