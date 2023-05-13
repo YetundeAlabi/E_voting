@@ -31,10 +31,16 @@ class Poll(models.Model):
     end_time = models.TimeField(
         default=datetime.time(16, 0))  # poll ends at 4:00pm
     is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(auto_now=True)
+    date_created = models.DateTimeField(auto_now_add=True)
     last_updated = models.DateTimeField(auto_now=True)
 
     objects = models.Manager()  # default manager
-    pollobjects = PollObjects()  # custom manager
+    pollobjects = PollObjects()  # custom 
+    
+    class Meta:
+        ordering = ["-start_time", "name"]
+
 
     def __str__(self):
         return self.name
@@ -51,7 +57,8 @@ class Poll(models.Model):
 
     def get_total_vote(self):
         return self.poll_votes.count()
-
+    
+    
 
 class Candidate(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -80,6 +87,8 @@ class Voter(models.Model):
     is_voted = models.BooleanField(default=False)
     email_sent = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(auto_now=True)
+    date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.email
@@ -101,6 +110,7 @@ class Vote(models.Model):
     candidate = models.ForeignKey(
         Candidate, on_delete=models.CASCADE, related_name="candidate_votes")
     voted_by = models.ForeignKey(Voter, on_delete=models.CASCADE)
+    date_created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ("poll", "voted_by")

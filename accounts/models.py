@@ -30,7 +30,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name="email address", max_length=255, unique=True)
     is_active = models.BooleanField(default=True)
     is_verified = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=True) #sign up required for only admin 
     first_name = models.CharField(max_length=30, blank=True, null=True)
     last_name = models.CharField(max_length=30, blank=True, null=True)
     phone_number = PhoneNumberField(blank=True)
