@@ -1,0 +1,22 @@
+{%extend 'base_generic.html'%}
+{%block main%}
+
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    {%for poll in poll_list%}
+                        <div class="col-sm-6 col-md-6 col-lg-3 mb-4" data-aos="fade-up" data-aos-delay="{% widthratio forloop.counter 1 100 %}">
+                        <a href="{% url 'poll-info' poll.id %}" class="category d-flex align-items-start h-100">
+                          <div>
+                            <i class="uil uil-atom"></i>
+                          </div>
+                          <div>
+                            <h3>{{poll.name}}</h3>
+                            <span>{{poll.description}}</span>
+                          </div>
+                        </a>
+                      </div>
+                    
+{%endblock%}
+
+

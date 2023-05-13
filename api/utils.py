@@ -3,7 +3,6 @@ import datetime
 
 from django.core.mail import EmailMessage
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.core.mail import send_mail
 from api.models import Voter

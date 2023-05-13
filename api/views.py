@@ -1,5 +1,6 @@
 import csv
 from datetime import datetime
+
 from django.db import transaction
 from django.contrib.sites.shortcuts import get_current_site
 
@@ -9,8 +10,7 @@ from rest_framework import status, serializers
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
-from accounts.serializers import UserSerializer
-from django.contrib.auth import get_user_model
+
 
 
 from api import serializers
@@ -295,7 +295,7 @@ class PollWinnersView(generics.ListAPIView):
 
 class SendPollEmailView(APIView):
     authentication_classes = []
-    permission_classes = []
+    permission_classes = [IsAdminUser]
     def get(self, request):
         voters = Voter.objects.all()
         print(voters)

@@ -24,9 +24,9 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include('accounts.urls')),
     path('api/', include('api.urls')),
-    path('frontend/', include('frontend.urls')),
-    path('myapp/', include('myapp.urls')),
-    path('voting/', include('voting.urls'))
+    # path('frontend/', include('frontend.urls')),
+    # path('myapp/', include('myapp.urls')),
+    path('myadmin/', include('voting.urls'))
     # path("", views.TestView.as_view()),
 ]
 if settings.DEBUG:

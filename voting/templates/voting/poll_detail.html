@@ -1,0 +1,11 @@
+{%extends "base_genric.html" %}
+{% block main %}
+
+<div class="card">
+    <img src="{% 'assets/img/votedark.jpg' %}" class="card-img-top" alt="...">
+    <div class="card-body">
+      <h5 class="card-title">Voting at poll</h5>
+      <p> {{poll.description}}
+      <p class="card-text">Polls open:<br></br> {{poll.start_time}} to {{poll.end_time}} on election day </p>
+    </div>
+  </div>

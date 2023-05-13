@@ -76,8 +76,7 @@ class PollDetailSerializer(serializers.ModelSerializer):
     
     def get_voter(self, obj):
         voter_id= self.context.get('voter_id')
-        print(voter_id)
-        voter = obj.objects.get(voters__id=voter_id)
+        voter = obj.voters.get(id=voter_id)
         serializer = VoterSerializer(voter)
         return serializer.data 
 
