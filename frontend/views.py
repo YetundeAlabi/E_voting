@@ -12,7 +12,7 @@ def signup(request):
 def login(request):
     return render(request, "frontend/login.html")
 
-def view(request, poll_id, voter_id):
+def vote(request, poll_id, voter_id):
     context = {
         "poll_id": poll_id,
         "voter_id": voter_id
