@@ -17,7 +17,7 @@ from django.core.mail import send_mail
 from django.views import View
 
 from .forms import PollUpdateForm, VoterUploadForm
-from api.models import Poll, Voter, Candidate, Vote
+from voting.models import Poll, Voter, Candidate, Vote
 # Create your views here.
 
 def index(request):
@@ -54,10 +54,12 @@ class SignupView(CreateView):
 
 class PollListView(ListView):
     model = Poll
+    template = "voting/poll_list.html"
 
 
 class PollDetailView(DetailView):
     model = Poll
+    template = 'voting/poll_detail.html'
 
 
 class PollCreateView(CreateView):
@@ -69,7 +71,7 @@ class PollCreateView(CreateView):
 
 class PollUpdateView(UpdateView):
     model = Poll
-    template_name = 'poll_update.html'
+    template_name = 'voting/poll_update.html'
     fields = ['start_time', 'end_time']
 
     def get_object(self, queryset=None):
@@ -118,6 +120,7 @@ class CandidateCreateView(CreateView):
     fields = "__all__"
 
 
+
 class CandidateListView(ListView):
     model = Candidate
 
@@ -129,6 +132,26 @@ class VoterCreateView(CreateView):
     model = Voter
     fields = "__all__"
 
+class VoterDeleteView(UpdateView):
+    model = Poll
+    template_name = 'voter_delete.html'
+    fields = []
+
+    def get_object(self, queryset=None):
+        obj = get_object_or_404(Poll, pk=self.kwargs['pk'])
+        return obj
+
+    def form_valid(self, form):
+        poll = form.save(commit=False)
+        poll.is_deleted = True
+        if poll.is_active:
+            # If the poll is active, it cannot be deleted
+            raise Http404("Cannot delete an active poll")
+
+        poll.save()
+        return redirect('voting:poll-list')
+    
+    
 
 class VoterImportView(View):
     def get(self, request, poll_id):

@@ -85,7 +85,7 @@
     <ul class="sidebar-nav" id="sidebar-nav">
 
       <li class="nav-item">
-        <a class="nav-link " href="index.html">
+        <a class="nav-link " href="{% url 'voting:poll-list'%}">
           <i class="bi bi-grid"></i>
           <span>Dashboard</span>
         </a>
@@ -109,12 +109,12 @@
             </a>
           </li>
           <li>
-            <a href="{%url 'voting:create-voters'%}">
+            <a href="{%url 'voting:create-voter'%}">
               <i class="bi bi-circle"></i><span>Create Voters</span>
             </a>
           </li>
           <li>
-            <a href="{% url 'voting:import-voters' %}">
+            <a href="">
               <i class="bi bi-circle"></i><span>Import Voter</span>
             </a>
           </li>
@@ -158,7 +158,7 @@
       </li><!-- End Error 404 Page Nav -->
 
       <li class="nav-item">
-        <a class="nav-link collapsed" href="{%url 'myapp:signout' %}">
+        <a class="nav-link collapsed" href="{%url 'voting:logout' %}">
           <i class="bi bi-file-earmark"></i>
           <span>signout</span>
         </a>

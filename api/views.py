@@ -305,7 +305,7 @@ class SendPollEmailView(APIView):
         return Response({'message': 'Poll emails sent successfully'})
     
 
-class TestView(generics.ListAPIView):
-    serializer_class = serializers.VoterSerializer
-    queryset = Voter.objects.all()
-    permission_classes = []
+# class TestView(generics.ListAPIView):
+#     serializer_class = serializers.VoterSerializer
+#     queryset = Voter.objects.all()
+#     permission_classes = []

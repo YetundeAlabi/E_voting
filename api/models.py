@@ -52,8 +52,8 @@ class Poll(models.Model):
             return True
         return False
 
-    def get_absolute_url(self):
-        return reverse("poll_detail", kwargs={"pk": self.pk})
+    # def get_absolute_url(self):
+    #     return reverse("poll_detail", kwargs={"pk": self.pk})
 
     def get_total_vote(self):
         return self.poll_votes.count()
@@ -69,8 +69,8 @@ class Candidate(models.Model):
     def __str__(self):
         return self.name
 
-    def get_absolute_url(self):
-        return reverse("candidate_detail", kwargs={"pk": self.pk})
+    # def get_absolute_url(self):
+    #     return reverse("candidate_detail", kwargs={"pk": self.pk})
 
     def get_vote_count(self):
         return self.candidate_votes.count()

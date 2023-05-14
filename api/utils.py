@@ -34,7 +34,7 @@ class Util:
             voter_id = voter.id
             voter_email = voter.email
             # poll_link = reverse('frontend:vote', kwargs={'pk': poll_id, 'voter_pk': voter_id})
-            voter_link = reverse('frontend:vote', args=[poll_id, voter_id])
+            voter_link = reverse('voting:vote', args=[poll_id, voter_id])
 
             # Update the voter to mark that their poll email has been sent
             voter.email_sent = True

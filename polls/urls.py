@@ -18,16 +18,11 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path, include
-from api import views
+from voting import views
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("accounts/", include('accounts.urls')),
-    path('api/', include('api.urls')),
-    # path('frontend/', include('frontend.urls')),
-    # path('myapp/', include('myapp.urls')),
-    path('myadmin/', include('voting.urls'))
-    # path("", views.TestView.as_view()),
+    path('myadmin/', include('voting.urls')),
+    path("", views.index),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL,
