@@ -24,6 +24,6 @@ urlpatterns = [
     path('api/', include('api.urls')),
     path('frontend/', include('frontend.urls')),
     path('myapp/', include('myapp.urls')),
-    path("", views.TestView.as_view()),
+    path("", views.test_view),
 
 ]
