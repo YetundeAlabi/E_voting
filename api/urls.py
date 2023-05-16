@@ -19,7 +19,7 @@ schema_view = get_schema_view(
 )
    
 urlpatterns = [
-    path('polls/', views.PollListCreateView.as_view(), name='polls'),
+    path('polls', views.PollListCreateView.as_view(), name='polls'),
     path('polls/<int:pk>/', views.PollDetailView.as_view(), name='poll_detail'),
     path('polls/<int:pk>/delete/', views.PollDestroyView.as_view(), name='poll_delete'),
     path('polls/<int:pk>/voters/', views.PollVoterView.as_view(), name='poll_voters'),

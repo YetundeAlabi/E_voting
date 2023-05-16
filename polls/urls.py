@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from api import views
+from accounts import views as acc_views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -24,6 +25,6 @@ urlpatterns = [
     path('api/', include('api.urls')),
     # path('frontend/', include('frontend.urls')),
     # path('myapp/', include('myapp.urls')),
-    path("", views.test_view),
+    path("", acc_views.UserLoginAPIView.as_view()),
 
 ]

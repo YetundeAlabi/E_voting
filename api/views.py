@@ -360,4 +360,4 @@ class TestView(generics.ListAPIView):
     permission_classes = []
     
 def test_view(request):
-    return HttpResponse("Welcome!!! to go to the swagger docs at api/swagger")
+    return HttpResponse("Welcome!!! to go to the docs at /api/polls ")
