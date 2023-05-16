@@ -22,7 +22,7 @@ from accounts import views as acc_views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include('accounts.urls')),
-    path('api/', include('api.urls')),
+    path('api/', include('api.urls', namespace="api")),
     # path('frontend/', include('frontend.urls')),
     # path('myapp/', include('myapp.urls')),
     path("", acc_views.UserLoginAPIView.as_view()),
