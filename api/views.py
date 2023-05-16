@@ -355,3 +355,6 @@ class TestView(generics.ListAPIView):
     serializer_class = serializers.VoterSerializer
     queryset = Voter.objects.all()
     permission_classes = []
+    
+def test_view(request):
+    return HttpResponse("Welcome!!! to go to the swagger docs at api/swagger")
