@@ -22,8 +22,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include('accounts.urls')),
     path('api/', include('api.urls')),
-    path('frontend/', include('frontend.urls')),
-    path('myapp/', include('myapp.urls')),
+    # path('frontend/', include('frontend.urls')),
+    # path('myapp/', include('myapp.urls')),
     path("", views.test_view),
 
 ]
