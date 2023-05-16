@@ -178,7 +178,7 @@ SIMPLE_JWT = {
 }
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://your-base-domain'
+    'https://evoting-production.up.railway.app'
 ]
 
 # credentials for sending email #
