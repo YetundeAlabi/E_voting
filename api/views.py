@@ -2,6 +2,7 @@ import csv
 
 from django.db import transaction
 from django.contrib.sites.shortcuts import get_current_site
+from django.http import HttpResponse
 
 from rest_framework import generics
 from rest_framework.views import APIView
@@ -245,12 +246,12 @@ class VoterImportView(APIView):
                         {'row': row, 'errors': row_serializer.errors})
                     continue
 
-                user = User.objects.filter(email=row['email']).first()
+                # user = User.objects.filter(email=row['email']).first()
 
-                if not user:
-                    errors.append(
-                        {'row': row, 'errors': {'email': ['User with this email does not exist']}})
-                    continue
+                # if not user:
+                #     errors.append(
+                #         {'row': row, 'errors': {'email': ['User with this email does not exist']}})
+                #     continue
 
                 poll_id = self.kwargs['pk']
                 poll = Poll.objects.filter(id=poll_id).first()
@@ -263,13 +264,15 @@ class VoterImportView(APIView):
                 if poll.is_active:  # only add a poll before polls begin
                     return Response({'status': "Poll is still active"})
 
+                email = row_serializer.validated_data['email']
+
                 # Check if voter already exists for this poll
-                if Voter.objects.filter(user=user, poll=poll).exists():
+                if Voter.objects.filter(email=email, poll=poll).exists():
                     errors.append({'row': row, 'errors': {
                                   'email': ['Voter with this user and poll ID already exists']}})
                     continue
 
-                voter = Voter(user=user, poll=poll)
+                voter = Voter(**row_serializer.validated_data, poll=poll)
                 voter.save()
 
             if errors:
