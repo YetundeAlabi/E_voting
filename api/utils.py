@@ -32,7 +32,7 @@ class Util:
         
         for voter in voters:
             poll_id = voter.poll.id
-            voter_id = voter.id
+            voter_id = voter.uuid
             voter_email = voter.email
             
             voter_link = reverse('frontend:vote', args=[poll_id, voter_id])

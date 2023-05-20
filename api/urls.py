@@ -27,10 +27,10 @@ urlpatterns = [
     path('polls/<int:pk>/voters/<int:voter_pk>/delete/', views.VoterDestroyView.as_view(), name='remove_voter'),
     path('polls/<int:pk>/import/', views.VoterImportView.as_view(), name='import_voters'),
     path('polls/<int:pk>/candidates/', views.CandidateListCreateView.as_view(), name='list_create_candidate'),
-    path('polls/<int:pk>/candidates/<int:candidate_pk>/vote/', views.CreateVoteView.as_view(), name='create_vote'),
+    path('polls/<int:pk>/voters/<int:voter_pk>/vote/', views.CreateVoteView.as_view(), name='create_vote'),
     path('polls/<int:pk>/result/', views.PollResultView.as_view(), name='poll_result'),
     path('voters/', views.VoterListView.as_view(), name='voter_list'),
     path('polls/<int:pk>/voters/<int:voter_pk>/', views.VoterDetailView.as_view(), name="voter_detail"),
-    path("send-email/", views.SendPollEmailView.as_view(), name="send-email"),
+    path("send-email/<int:poll_pk>/", views.SendPollEmailView.as_view(), name="send-email"),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui')
 ]

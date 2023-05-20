@@ -76,8 +76,6 @@ class PollDetailSerializer(serializers.ModelSerializer):
     def get_is_active(self, obj):
         return obj.is_active()
 
-    
-        
 
     def update(self, instance, validated_data):
         """update start and end time before a poll start """

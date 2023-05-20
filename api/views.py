@@ -74,7 +74,17 @@ class CandidateListCreateView(generics.ListCreateAPIView):
         if not poll:
             return Response({'error': 'Poll with this ID does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer.save(poll=poll)
+        serializer.save(poll=self.poll)
+
+    def post(self, request, *args, **kwargs):
+        poll_id = self.kwargs["pk"]
+        poll = Poll.objects.filter(id=poll_id).first()
+
+        if not poll:
+            return Response({'error': 'Poll with this ID does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
+        self.poll = poll
+        return super().post(request, *args, **kwargs)
 
 
 class CandidateUpdateView(generics.UpdateAPIView):
@@ -83,14 +93,14 @@ class CandidateUpdateView(generics.UpdateAPIView):
     serializer_class = serializers.CandidateSerializer
     permission_classes = [IsAdminUser]
 
-
     def get_object(self):
         candidate_id = self.kwargs['candidate_pk']
         return self.queryset.get(id=candidate_id)
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer = self.get_serializer(
+            instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
 
         # Access the validated poll object from the serializer
@@ -110,10 +120,11 @@ class VoterListView(generics.ListAPIView):
     queryset = Voter.objects.all()
     # permission_classes = [I]
 
+
 class VoterDetailView(generics.RetrieveAPIView):
     queryset = Voter.objects.all()
     serializer_class = serializers.VoterDetailSerializer
-    
+
 
 class PollVoterView(generics.ListCreateAPIView):
     """List all voters in a poll and add voters to the poll through an admin"""
@@ -138,7 +149,21 @@ class PollVoterView(generics.ListCreateAPIView):
         if poll.is_active:
             return Response({'poll_id': ['Poll is still active']}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer.save(poll=poll)
+        serializer.save(poll=self.poll)
+
+    def post(self, request, *args, **kwargs):
+        poll_id = self.kwargs.get('pk')
+        poll = Poll.objects.filter(id=poll_id).first()
+
+        if not poll:
+            return Response({'error': 'Poll with this ID does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
+        if poll.is_active:
+            return Response({'poll_id': ['Poll is still active']}, status=status.HTTP_400_BAD_REQUEST)
+        
+        self.poll = poll
+        return super().post(request, *args, **kwargs)
+
 
 
 class VoterDestroyView(generics.DestroyAPIView):
@@ -180,7 +205,8 @@ class VoterImportView(APIView):
 
             with transaction.atomic():
                 for row in reader:
-                    row_serializer = serializers.VoterImportSerializer(data=row)
+                    row_serializer = serializers.VoterImportSerializer(
+                        data=row)
 
                     if not row_serializer.is_valid():
                         errors.append(
@@ -192,7 +218,7 @@ class VoterImportView(APIView):
 
                     if not poll:
                         errors.append({'row': row, 'errors': {'poll_id': [
-                                        'Poll with this ID does not exist']}})
+                            'Poll with this ID does not exist']}})
                         continue
 
                     if poll.is_active:  # only add a poll before polls begin
@@ -203,13 +229,13 @@ class VoterImportView(APIView):
                     # Check if voter already exists for this poll
                     if Voter.objects.filter(email=email, poll=poll).exists():
                         errors.append({'row': row, 'errors': {
-                                        'email': ['Voter with this user and poll ID already exists']}})
+                            'email': ['Voter with this user and poll ID already exists']}})
                         continue
-                    
+
                     # Instantiate the voter object
                     voter = Voter(**row_serializer.validated_data, poll=poll)
                     voter.save()
-                        
+
                 if errors:
                     transaction.rollback()
                     # If there are any errors, return a response with errors
@@ -220,7 +246,7 @@ class VoterImportView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
+
 
 class VoterImportView(APIView):
     """ import voters using a csv"""
@@ -239,19 +265,12 @@ class VoterImportView(APIView):
             errors = []
 
             for row in reader:
-                row_serializer = serializers.VoterEmailSerializer(data=row)
+                row_serializer = serializers.VoterImportSerializer(data=row)
 
                 if not row_serializer.is_valid():
                     errors.append(
                         {'row': row, 'errors': row_serializer.errors})
                     continue
-
-                # user = User.objects.filter(email=row['email']).first()
-
-                # if not user:
-                #     errors.append(
-                #         {'row': row, 'errors': {'email': ['User with this email does not exist']}})
-                #     continue
 
                 poll_id = self.kwargs['pk']
                 poll = Poll.objects.filter(id=poll_id).first()
@@ -294,20 +313,21 @@ class CreateVoteView(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         poll_id = self.kwargs["pk"]
-        candidate_id = self.kwargs["candidate_pk"]
-        user = request.user
+        # candidate_id = self.kwargs["candidate_pk"]
+        voter_id = self.kwargs["voter_pk"]
 
         try:
             """ get only active polls. Can't vote before start time"""
             poll = Poll.objects.get(id=poll_id)
-            candidate = Candidate.objects.get(id=candidate_id)
-            
-            voter = Voter.objects.get(poll=poll, id=user.id)
+            selected_candidate = poll.candidates.get(name=request.data.get("name"))
+            # candidate = Candidate.objects.get(id=candidate_id)
+
+            voter = Voter.objects.filter(poll=poll, uuid=voter_id)
 
             """ check if voter has voted """
             if voter.cast_vote():
                 vote = Vote.objects.create(
-                    poll=poll, candidate=candidate, voted_by=voter)
+                    poll=poll, candidate=selected_candidate, voted_by=voter)
                 serializer = serializers.VoteSerializer(vote)
                 return Response({"success": "Thank you for voting"}, serializer.data, status=status.HTTP_201_CREATED)
             else:
@@ -325,7 +345,6 @@ class PollResultView(generics.RetrieveAPIView):
     serializer_class = serializers.PollResultSerializer
 
 
-
 class PollWinnersView(generics.ListAPIView):
     """ get a list of polls that have been voted on """
     queryset = Poll.objects.filter(poll_votes__isnull=False).distinct()
@@ -341,23 +360,24 @@ class PollWinnersView(generics.ListAPIView):
         return Response(serializer.data)
 
 
-
 class SendPollEmailView(APIView):
     authentication_classes = []
     permission_classes = []
-    def get(self, request):
-        voters = Voter.objects.all()
-        print(voters)
+
+    def get(self, request, *args, **kwargs):
+        voters = Voter.objects.filter(poll_id=self.kwargs["poll_pk"])
+        # print(voters)
         current_site = get_current_site(request).domain
         Util.send_poll_email(voters, current_site)
 
         return Response({'message': 'Poll emails sent successfully'})
-    
+
 
 class TestView(generics.ListAPIView):
     serializer_class = serializers.VoterSerializer
     queryset = Voter.objects.all()
     permission_classes = []
-    
+
+
 def test_view(request):
     return HttpResponse("Welcome!!! to go to the docs at /api/polls ")

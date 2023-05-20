@@ -14,16 +14,14 @@ now = datetime.datetime.now()
 
 # Create your models here.
 
-
-class Poll(models.Model):
-
-    class PollObjects(models.Manager):
+class PollObjects(models.Manager):
         def get_queryset(self) -> QuerySet:
             return super().get_queryset().filter(
                 Q(start_time__lte=now) & Q(
                     end_time__gte=now) & Q(is_deleted=False)
             )
 
+class Poll(models.Model):    
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(null=True)
     start_time = models.TimeField(
@@ -42,9 +40,7 @@ class Poll(models.Model):
     @property
     def is_active(self):
         """ check if poll is active at current time """
-        if self.start_time <= datetime.datetime.now().time() <= self.end_time:
-            return True
-        return False
+        return self.start_time <= datetime.datetime.now().time() <= self.end_time
 
     def get_absolute_url(self):
         return reverse("poll_detail", kwargs={"pk": self.pk})
